@@ -1,0 +1,23 @@
+{
+    "extends": "../tsconfig-base.json",
+    "files": [
+        "index.ts",
+        "serialStream.ts",
+        "uploader.ts",
+        "controller.ts"
+    ],
+    "references": [
+        {
+            "path": "./link"
+        }
+    ],
+    "paths": {},
+    "compilerOptions": {
+        "target": "es2021",
+        "module": "es2020",
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+    }
+}
