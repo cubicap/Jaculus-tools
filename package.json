@@ -6,6 +6,9 @@
         "dist"
     ],
     "scripts": {
+        "build": "tsc --build",
+        "clean": "tsc --build --clean",
+        "start": "node dist/index.js",
         "test": "mocha"
     },
     "type": "module",
