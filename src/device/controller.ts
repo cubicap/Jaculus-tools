@@ -1,4 +1,4 @@
-import { BufferedInputPacketCommunicator, OutputPacketCommunicator } from "./link/communicator.js";
+import { BufferedInputPacketCommunicator, OutputPacketCommunicator } from "../link/communicator.js";
 
 
 export enum Command {

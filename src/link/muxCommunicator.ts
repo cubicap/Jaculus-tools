@@ -1,7 +1,6 @@
 import { Packet, Consumer, EOF } from "./linkTypes.js";
 import { Mux } from "./mux.js";
 import { BufferedInputStreamCommunicator, BufferedInputPacketCommunicator, OutputStreamCommunicator, OutputPacketCommunicator } from "./communicator.js";
-import Queue from "queue-fifo"
 
 
 export class TransparentOutputStreamCommunicator implements OutputStreamCommunicator {

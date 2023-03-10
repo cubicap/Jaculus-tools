@@ -1,10 +1,11 @@
 import { Mux } from "./src/link/mux.js"
-import { SerialStream } from "./src/serialStream.js";
-import { Uploader, Command as UpCommand } from "./src/uploader.js";
-import { Controller, Command as CtrlCommand } from "./src/controller.js";
+import { SerialStream } from "./src/link/serialStream.js";
+import { Uploader, Command as UpCommand } from "./src/device/uploader.js";
+import { Controller, Command as CtrlCommand } from "./src/device/controller.js";
 import { TransparentOutputPacketCommunicator, UnboundedBufferedInputPacketCommunicator, UnboundedBufferedInputStreamCommunicator } from "./src/link/muxCommunicator.js";
 import * as readline from "readline"
 import { stdout } from "process";
+import { SerialPort } from "serialport";
 
 
 function printHelp() {
@@ -36,7 +37,7 @@ async function main() {
             else if (process.argv[i] == "-l" || process.argv[i] == "--list") {
                 stdout.write("Available serial ports:\n");
                 let table: { path: string, manufacturer?: string }[] = [ { path: "Path", manufacturer: "Manufacturer" } ];
-                let ports = await SerialStream.list();
+                let ports = await SerialPort.list();
                 for (let port of ports) {
                     table.push({
                         path: port.path,
@@ -62,7 +63,7 @@ async function main() {
     }
 
     if (portPath == undefined) {
-        let ports = await SerialStream.list();
+        let ports = await SerialPort.list();
         if (ports.length == 0) {
             stdout.write("No serial ports found\n");
             return;
@@ -72,9 +73,7 @@ async function main() {
 
     let mux = new Mux(new SerialStream(
         portPath,
-        {
-            baudRate: 921600
-        }
+        921600
     ));
 
     let logInput = new UnboundedBufferedInputStreamCommunicator(mux, 255);

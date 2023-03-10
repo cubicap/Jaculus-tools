@@ -1,12 +1,16 @@
 {
-    "extends": "../tsconfig-base.json",
-    "include": [
-        "index.ts"
+    "extends": "../../tsconfig-base.json",
+    "files": [
+        "index.ts",
+        "uploader.ts",
+        "controller.ts",
     ],
     "references": [
+        {
+            "path": "../link"
+        }
     ],
-    "paths": {
-    },
+    "paths": {},
     "compilerOptions": {
         "target": "es2021",
         "module": "es2020",

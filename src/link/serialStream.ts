@@ -1,6 +1,5 @@
 import { SerialPort } from "serialport"
-import { PortInfo } from "@serialport/bindings-cpp"
-import { Duplex } from "./link/stream.js"
+import { Duplex } from "./stream.js"
 
 
 export class SerialStream implements Duplex {
@@ -13,13 +12,17 @@ export class SerialStream implements Duplex {
     }
     port: SerialPort
 
-    constructor(path: string, options: any) {
+    constructor(path: string, baudRate: number, callbacks: {
+        "data"?: (data: Buffer) => void,
+        "overflow"?: (data: Buffer) => void,
+        "error"?: (err: any) => void
+    } = {}) {
         this.path = path
-        this.baudRate = options.baudRate || 115200
+        this.baudRate = baudRate
         this.callbacks = {
-            "data": options.data || function() {},
-            "overflow": options.overflow || function() {},
-            "error": options.error || function() {},
+            "data": callbacks["data"] || ((data: Buffer) => {}),
+            "overflow": callbacks["overflow"] || ((data: Buffer) => {}),
+            "error": callbacks["error"] || ((err: any) => {})
         }
 
         this.port = new SerialPort({
@@ -59,9 +62,5 @@ export class SerialStream implements Duplex {
 
     public onData(callback: (data: Buffer) => void): void {
         this.callbacks["data"] = callback
-    }
-
-    static list(): Promise<PortInfo[]> {
-        return SerialPort.list()
     }
 }

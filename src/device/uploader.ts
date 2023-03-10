@@ -1,5 +1,5 @@
-import { BufferedInputPacketCommunicator, OutputPacketCommunicator } from "./link/communicator.js";
-import { Packet } from "./link/linkTypes.js";
+import { BufferedInputPacketCommunicator, OutputPacketCommunicator } from "../link/communicator.js";
+import { Packet } from "../link/linkTypes.js";
 import * as fs from "fs";
 
 
@@ -18,7 +18,7 @@ export enum Command {
     CONTINUE = 0x23,
 };
 
-// TODO:  fix path encoding
+// TODO: fix path encoding
 
 export class Uploader {
     private _in: BufferedInputPacketCommunicator;
@@ -283,7 +283,6 @@ export class Uploader {
     }
 
     public async upload(from: string, to: string): Promise<Command> {
-        console.log("uploading: " + from + " to " + to);
         try {
             if (fs.lstatSync(from).isDirectory()) {
                 let files = fs.readdirSync(from);

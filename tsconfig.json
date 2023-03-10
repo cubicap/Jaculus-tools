@@ -5,10 +5,13 @@
     ],
     "references": [
         {
-            "path": "./commands"
+            "path": "./src/commands"
         },
         {
-            "path": "./src"
+            "path": "./src/link"
+        },
+        {
+            "path": "./src/device"
         }
     ],
     "compilerOptions": {

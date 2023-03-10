@@ -6,7 +6,8 @@
         "linkTypes.ts",
         "mux.ts",
         "muxCommunicator.ts",
-        "stream.ts"
+        "stream.ts",
+        "serialStream.ts",
     ],
     "references": [],
     "paths": {},

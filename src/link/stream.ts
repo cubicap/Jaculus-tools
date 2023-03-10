@@ -1,5 +1,3 @@
-
-
 export interface OutputStream {
     put(c: number): void
     write(buf: Buffer): void
