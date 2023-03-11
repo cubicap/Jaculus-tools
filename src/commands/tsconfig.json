@@ -12,9 +12,11 @@
         "jac-rm.ts",
         "jac-rmdir.ts",
         "jac-upload.ts",
+        "jac-flash.ts",
         "jac-start.ts",
         "jac-stop.ts",
         "jac-status.ts",
+        "jac-compile.ts",
         "index.ts"
     ],
     "references": [
@@ -23,10 +25,12 @@
         },
         {
             "path": "../link"
+        },
+        {
+            "path": "../code"
         }
     ],
-    "paths": {
-    },
+    "paths": {},
     "compilerOptions": {
         "target": "es2021",
         "module": "es2020",

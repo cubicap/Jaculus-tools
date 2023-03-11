@@ -310,4 +310,23 @@ export class Uploader {
             throw e;
         }
     }
+
+    public async push(from: string, to: string): Promise<Command> {
+        try {
+            if (!fs.lstatSync(from).isDirectory()) {
+                throw "Source must be a directory";
+            }
+
+            let files = fs.readdirSync(from);
+            for (let file of files) {
+                await this.upload(from + "/" + file, to + "/" + file).catch((err) => {
+                    throw err;
+                });
+            }
+            return Command.OK;
+        }
+        catch (e) {
+            throw e;
+        }
+    }
 }

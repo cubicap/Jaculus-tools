@@ -20,9 +20,12 @@ program.command("mkdir", "Create directory")
 program.command("rm", "Remove file")
 program.command("rmdir", "Remove directory")
 program.command("upload", "Upload file/directory")
+program.command("flash", "Flash directory (replace contents of /data)")
 
 program.command("start", "Start program")
 program.command("stop", "Stop program")
 program.command("status", "Get device status")
+
+program.command("compile", "Compile TypeScript files")
 
 program.parse(process.argv);
