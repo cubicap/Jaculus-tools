@@ -18,12 +18,21 @@ program.action(async (options: OptionValues) => {
     stdout.write("Tunneling " + portPath + "\n");
 
 
-    let socket: net.Socket | null = null;
+    let sockets: Set<net.Socket> = new Set();
 
     let port = new SerialPort({
         path: portPath,
-        baudRate: parseInt(options.baudrate),
-        autoOpen: false
+        baudRate: parseInt(options.baudrate)
+    }, (err) => {
+        if (err) {
+            stdout.write("Port open error: " + err.message + "\n");
+            process.exit(1);
+        }
+
+        port.set({
+            rts: true,
+            dtr: true
+        })
     });
 
     port.on("error", (err) => {
@@ -37,28 +46,23 @@ program.action(async (options: OptionValues) => {
     });
 
     port.on("data", (data) => {
-        if (socket) {
+        for (let socket of sockets) {
             socket.write(data);
         }
-        stdout.write("Port data: " + data.toString() + "\n");
+        stdout.write("Port >> " + data.toString() + "\n");
     });
 
-    port.open();
 
+    let server = net.createServer((socket) => {
+        sockets.add(socket);
 
-    let server = net.createServer((newSocket) => {
-        if (socket) {
-            newSocket.end();
-            return;
-        }
-
-        socket = newSocket;
         socket.on("data", (data) => {
-            stdout.write("Socket data: " + data.toString() + "\n");
+            stdout.write("Sock >> " + data.toString() + "\n");
             port.write(data);
         });
         socket.on("close", () => {
-            socket = null;
+            sockets.delete(socket);
+            stdout.write("Socket closed\n");
         });
         socket.on("error", (err) => {
             stdout.write("Socket error: " + err.message + "\n");
