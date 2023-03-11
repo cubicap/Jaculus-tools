@@ -15,7 +15,8 @@
     "main": "dist/index.js",
     "dependencies": {
         "commander": "^10.0.0",
-        "serialport": "^10.4.0"
+        "serialport": "^10.4.0",
+        "winston": "^3.8.2"
     },
     "devDependencies": {
         "@tsconfig/node16": "^1.0.3",

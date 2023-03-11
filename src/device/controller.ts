@@ -1,4 +1,5 @@
 import { BufferedInputPacketCommunicator, OutputPacketCommunicator } from "../link/communicator.js";
+import { logger } from "../util/logger.js";
 
 
 export enum Command {
@@ -39,6 +40,7 @@ export class Controller {
     }
 
     public start(path: string): Promise<Command> {
+        logger.verbose("Starting program: " + path);
         return new Promise((resolve, reject) => {
             this._onPacket = (cmd: Command, data: Buffer) => {
                 if (cmd == Command.OK) {
@@ -59,6 +61,7 @@ export class Controller {
     }
 
     public stop(): Promise<Command> {
+        logger.verbose("Stopping program");
         return new Promise((resolve, reject) => {
             this._onPacket = (cmd: Command, data: Buffer) => {
                 if (cmd == Command.OK) {
@@ -76,6 +79,7 @@ export class Controller {
     }
 
     public status(): Promise<{ running: boolean, exitCode?: number, status: string }> {
+        logger.verbose("Getting status");
         return new Promise((resolve, reject) => {
             this._onPacket = (cmd: Command, data: Buffer) => {
                 if (cmd == Command.STATUS && data.length > 0) {

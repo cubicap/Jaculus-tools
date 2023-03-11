@@ -3,7 +3,11 @@
     "files": [
         "compiler.ts",
     ],
-    "references": [],
+    "references": [
+        {
+            "path": "../util"
+        }
+    ],
     "paths": {},
     "compilerOptions": {
         "target": "es2021",

@@ -1,7 +1,7 @@
 import { Packetizer, Serializer } from "./cobs.js";
 import { Consumer, Packet } from "./linkTypes.js";
 import { Duplex } from "./stream.js";
-
+import { logger } from "../util/logger.js";
 
 class MuxPacket implements Packet {
     private _mux: Mux;
@@ -44,7 +44,7 @@ export class Mux {
     }
 
     private receive(data: Buffer): void {
-        // console.log("receive", data.reduce((a, b) => a + String.fromCharCode(b), ""));
+        logger.silly("receive『" + data.reduce((a, b) => a + String.fromCharCode(b), "") + "』");
         for (let c of data) {
             if (this._packetizer.put(c)) {
                 let result = this._packetizer.decode();

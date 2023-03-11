@@ -1,7 +1,8 @@
-import { stdout } from "process";
+import { stderr } from "process";
+import { Writable } from "stream";
 import ts from "typescript";
 
-export function compile(fileNames: string[], outDir: string): boolean {
+export function compile(fileNames: string[], outDir: string, err: Writable = stderr): boolean {
     let options: ts.CompilerOptions = {
         target: ts.ScriptTarget.ES2020,
         module: ts.ModuleKind.ES2020,
@@ -20,11 +21,11 @@ export function compile(fileNames: string[], outDir: string): boolean {
     allDiagnostics.forEach(diagnostic => {
         if (diagnostic.file) {
             let { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!);
-            stdout.write(`${diagnostic.file.fileName} (${line + 1},${character + 1}): `);
-            stdout.write(diagnostic.messageText + "\n");
+            err.write(`${diagnostic.file.fileName} (${line + 1},${character + 1}): `);
+            err.write(diagnostic.messageText + "\n");
         }
         else {
-            console.log(diagnostic.messageText + "\n");
+            err.write(diagnostic.messageText + "\n");
         }
     });
 

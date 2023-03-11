@@ -1,6 +1,8 @@
 import { BufferedInputPacketCommunicator, OutputPacketCommunicator } from "../link/communicator.js";
 import { Packet } from "../link/linkTypes.js";
 import * as fs from "fs";
+import { logger } from "../util/logger.js";
+import path from "path";
 
 
 export enum Command {
@@ -17,8 +19,6 @@ export enum Command {
     NOT_FOUND = 0x22,
     CONTINUE = 0x23,
 };
-
-// TODO: fix path encoding
 
 export class Uploader {
     private _in: BufferedInputPacketCommunicator;
@@ -47,7 +47,7 @@ export class Uploader {
         });
     }
 
-    processPacket(data_: Buffer): boolean {
+    private processPacket(data_: Buffer): boolean {
         let data = Buffer.from(data_);
         if (data.length < 1) {
             return false;
@@ -106,8 +106,19 @@ export class Uploader {
         }
     }
 
-    public readFile(path: string): Promise<Buffer> {
-        console.log("reading file", path);
+    public encodePath(path_: string, nullTerminate: boolean = true): Buffer {
+        let data = Buffer.alloc(path_.length + (nullTerminate ? 1 : 0));
+        for (let i = 0; i < path_.length; i++) {
+            data[i] = path_.charCodeAt(i);
+        }
+        if (nullTerminate) {
+            data[path_.length] = 0;
+        }
+        return data;
+    }
+
+    public readFile(path_: string): Promise<Buffer> {
+        logger.verbose("Reading file: " + path_);
         return new Promise((resolve, reject) => {
             let data: Buffer = Buffer.alloc(0);
             this._onData = (d: Buffer) => {
@@ -127,15 +138,15 @@ export class Uploader {
             };
             let packet = this._out.buildPacket();
             packet.put(Command.READ_FILE);
-            for (let c of path) {
-                packet.put(c.charCodeAt(0));
+            for (let b of this.encodePath(path_, false)) {
+                packet.put(b);
             }
             packet.send();
         });
     }
 
-    public writeFile(path: string, data: Buffer): Promise<Command> {
-        console.log("writing file", path, data.length);
+    public writeFile(path_: string, data: Buffer): Promise<Command> {
+        logger.verbose("Writing file: " + path_ + " - " + data.length);
         return new Promise(async (resolve, reject) => {
 
             this._onOk = () => {
@@ -150,10 +161,9 @@ export class Uploader {
 
             let packet: Packet | null = this._out.buildPacket();
             packet.put(Command.WRITE_FILE);
-            for (let c of path) {
-                packet.put(c.charCodeAt(0));
+            for (let b of this.encodePath(path_, true)) {
+                packet.put(b);
             }
-            packet.put(0);
 
             let offset = 0;
             let prefix = Command.HAS_MORE_DATA;
@@ -186,8 +196,8 @@ export class Uploader {
         });
     }
 
-    public deleteFile(path: string): Promise<Command> {
-        console.log("deleting file", path);
+    public deleteFile(path_: string): Promise<Command> {
+        logger.verbose("Deleting file: " + path_);
         return new Promise((resolve, reject) => {
             this._onOk = () => {
                 resolve(Command.OK);
@@ -201,15 +211,15 @@ export class Uploader {
 
             let packet = this._out.buildPacket();
             packet.put(Command.DELETE_FILE);
-            for (let c of path) {
-                packet.put(c.charCodeAt(0));
+            for (let b of this.encodePath(path_, false)) {
+                packet.put(b);
             }
             packet.send();
         });
     }
 
-    public listDirectory(path: string): Promise<string[]> {
-        console.log("listing directory", path);
+    public listDirectory(path_: string): Promise<string[]> {
+        logger.verbose("Listing directory: " + path_);
         return new Promise((resolve, reject) => {
             let data: Buffer = Buffer.alloc(0);
             this._onData = (d: Buffer) => {
@@ -231,15 +241,15 @@ export class Uploader {
             };
             let packet = this._out.buildPacket();
             packet.put(Command.LIST_DIR);
-            for (let c of path) {
-                packet.put(c.charCodeAt(0));
+            for (let b of this.encodePath(path_, false)) {
+                packet.put(b);
             }
             packet.send();
         });
     }
 
-    public createDirectory(path: string): Promise<Command> {
-        console.log("creating directory", path);
+    public createDirectory(path_: string): Promise<Command> {
+        logger.verbose("Creating directory: " + path_);
         return new Promise((resolve, reject) => {
             this._onOk = () => {
                 resolve(Command.OK);
@@ -253,15 +263,15 @@ export class Uploader {
 
             let packet = this._out.buildPacket();
             packet.put(Command.CREATE_DIR);
-            for (let c of path) {
-                packet.put(c.charCodeAt(0));
+            for (let b of this.encodePath(path_, false)) {
+                packet.put(b);
             }
             packet.send();
         });
     }
 
-    public deleteDirectory(path: string): Promise<Command> {
-        console.log("deleting directory", path);
+    public deleteDirectory(path_: string): Promise<Command> {
+        logger.verbose("Deleting directory: " + path_);
         return new Promise((resolve, reject) => {
             this._onOk = () => {
                 resolve(Command.OK);
@@ -275,14 +285,15 @@ export class Uploader {
 
             let packet = this._out.buildPacket();
             packet.put(Command.DELETE_DIR);
-            for (let c of path) {
-                packet.put(c.charCodeAt(0));
+            for (let b of this.encodePath(path_, false)) {
+                packet.put(b);
             }
             packet.send();
         });
     }
 
     public async upload(from: string, to: string): Promise<Command> {
+        logger.info("Uploading " + from + " to " + to);
         try {
             if (fs.lstatSync(from).isDirectory()) {
                 let files = fs.readdirSync(from);
@@ -291,7 +302,7 @@ export class Uploader {
                     throw "Failed to create directory (" + cmd + ")";
                 });
                 for (let file of files) {
-                    await this.upload(from + "/" + file, to + "/" + file).catch((err) => {
+                    await this.upload(path.join(from, file), to + "/" + file).catch((err) => {
                         throw err;
                     });
                 }
@@ -312,6 +323,7 @@ export class Uploader {
     }
 
     public async push(from: string, to: string): Promise<Command> {
+        logger.verbose("Pushing " + from + " to " + to);
         try {
             if (!fs.lstatSync(from).isDirectory()) {
                 throw "Source must be a directory";
@@ -319,7 +331,7 @@ export class Uploader {
 
             let files = fs.readdirSync(from);
             for (let file of files) {
-                await this.upload(from + "/" + file, to + "/" + file).catch((err) => {
+                await this.upload(path.join(from, file), to + "/" + file).catch((err) => {
                     throw err;
                 });
             }
