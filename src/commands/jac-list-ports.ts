@@ -1,8 +1,8 @@
 import { Command } from "commander";
 import { SerialPort } from "serialport";
+import { stdout } from "process";
 
 const program = new Command();
-const stdout = process.stdout;
 
 program.action(async () => {
     stdout.write("Available serial ports:\n");

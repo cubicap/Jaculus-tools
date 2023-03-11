@@ -2,8 +2,8 @@ import { JacDevice } from "../device/jacDevice.js";
 import { SerialStream } from "../link/serialStream.js";
 import { SocketStream } from "../link/socketStream.js";
 import { SerialPort } from "serialport";
+import { stdout } from "process";
 
-const stdout = process.stdout;
 
 export async function defaultPort(value?: string): Promise<string> {
     if (!value) {
@@ -33,7 +33,7 @@ export function defaultSocket(value?: string): string {
 
 export async function getPortSocket(port?: string | boolean, socket?: string | boolean): Promise<{ type: "port" | "socket", value: string }> {
     if (port && socket) {
-        stdout.write("Must specify either a serial port or a socket, not both");
+        stdout.write("Must specify either a serial port or a socket, not both\n");
         process.exit(1);
     }
 

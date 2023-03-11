@@ -1,9 +1,9 @@
 import { Command, OptionValues } from "commander";
 import { getDevice } from "./util.js";
 import * as readline from "readline"
+import { stdout } from "process";
 
 const program = new Command();
-const stdout = process.stdout;
 
 program
     .option("-p, --port [path]", "Serial port to use")

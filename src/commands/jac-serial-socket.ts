@@ -2,9 +2,9 @@ import { Command, OptionValues } from "commander";
 import { defaultPort, defaultSocket, defaultBaudrate } from "./util.js";
 import * as net from "net";
 import { SerialPort } from "serialport";
+import { stdout } from "process";
 
 const program = new Command();
-const stdout = process.stdout;
 
 program
     .option("-p, --port [path]", "Serial port to use (default: first available)")
