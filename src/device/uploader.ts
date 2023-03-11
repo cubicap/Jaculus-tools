@@ -33,7 +33,7 @@ export class Uploader {
     public constructor(in_: BufferedInputPacketCommunicator, out: OutputPacketCommunicator) {
         this._in = in_;
         this._out = out;
-        in_.onData((data: Buffer) => {
+        this._in.onData((data: Buffer) => {
             this.processPacket(data);
         });
     }

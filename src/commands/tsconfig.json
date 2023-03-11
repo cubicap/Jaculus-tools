@@ -1,8 +1,32 @@
 {
     "extends": "../../tsconfig-base.json",
-    "files": [],
-    "references": [],
-    "paths": {},
+    "include": [
+        "util.ts",
+        "jac-list-ports.ts",
+        "jac-serial-socket.ts",
+        "jac-monitor.ts",
+        "jac-ls.ts",
+        "jac-read.ts",
+        "jac-write.ts",
+        "jac-mkdir.ts",
+        "jac-rm.ts",
+        "jac-rmdir.ts",
+        "jac-upload.ts",
+        "jac-start.ts",
+        "jac-stop.ts",
+        "jac-status.ts",
+        "index.ts"
+    ],
+    "references": [
+        {
+            "path": "../device"
+        },
+        {
+            "path": "../link"
+        }
+    ],
+    "paths": {
+    },
     "compilerOptions": {
         "target": "es2021",
         "module": "es2020",

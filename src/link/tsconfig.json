@@ -8,6 +8,7 @@
         "muxCommunicator.ts",
         "stream.ts",
         "serialStream.ts",
+        "socketStream.ts",
     ],
     "references": [],
     "paths": {},
