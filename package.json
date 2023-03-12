@@ -1,18 +1,31 @@
 {
     "name": "jaculus-tools",
     "version": "0.0.1",
-    "description": "",
+    "author": {
+        "name": "Petr Kubica (cubicap)",
+        "email": "cubicap@email.cz"
+    },
+    "description": "Tools for programming and controlling devices running Jaculus",
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:cubicap/Jaculus-tools.git"
+    },
     "files": [
         "dist"
     ],
     "scripts": {
         "build": "tsc --build",
         "clean": "tsc --build --clean",
-        "cmd": "node dist/index.js",
-        "test": "mocha"
+        "start": "node dist/index.js",
+        "test": "mocha",
+        "prepare" : "npm run build"
+    },
+    "bin": {
+        "jac": "dist/index.js"
     },
     "type": "module",
     "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "dependencies": {
         "@types/cli-progress": "^3.11.0",
         "@types/unzipper": "^0.10.5",
