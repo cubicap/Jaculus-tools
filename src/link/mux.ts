@@ -1,4 +1,4 @@
-import { Packetizer, Serializer } from "./cobs.js";
+import { Packetizer, Serializer } from "./encoders/cobs.js";
 import { Consumer, Packet } from "./linkTypes.js";
 import { Duplex } from "./stream.js";
 import { logger } from "../util/logger.js";

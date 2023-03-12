@@ -1,4 +1,4 @@
-import { Duplex } from "./stream.js"
+import { Duplex } from "../stream.js"
 import * as net from "net"
 
 export class SocketStream implements Duplex {

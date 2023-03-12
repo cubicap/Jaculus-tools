@@ -1,18 +1,10 @@
 {
     "extends": "./tsconfig-base.json",
-    "files": [
-        "index.ts"
-    ],
+    "files": [],
     "references": [
         {
-            "path": "./src/commands"
+            "path": "./src"
         },
-        {
-            "path": "./src/link"
-        },
-        {
-            "path": "./src/device"
-        }
     ],
     "compilerOptions": {
         "target": "es2021",

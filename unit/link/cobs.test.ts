@@ -1,7 +1,7 @@
 import "mocha"
 import chai from "chai"
 import chaiBytes from "chai-bytes";
-import { Packetizer, Serializer } from "../../src/link/cobs.js"
+import { Packetizer, Serializer } from "../../src/link/encoders/cobs.js";
 
 chai.use(chaiBytes);
 const expect = chai.expect;

@@ -2,7 +2,7 @@ import { BufferedInputPacketCommunicator, OutputPacketCommunicator } from "../li
 import { logger } from "../util/logger.js";
 
 
-export enum Command {
+export enum ControllerCommand {
     START = 0x01,
     STOP = 0x02,
     STATUS = 0x03,
@@ -15,7 +15,7 @@ export class Controller {
     private _in: BufferedInputPacketCommunicator;
     private _out: OutputPacketCommunicator;
 
-    private _onPacket?: (cmd: Command, data: Buffer) => boolean;
+    private _onPacket?: (cmd: ControllerCommand, data: Buffer) => boolean;
 
     public constructor(in_: BufferedInputPacketCommunicator, out: OutputPacketCommunicator) {
         this._in = in_;
@@ -31,7 +31,7 @@ export class Controller {
             return false;
         }
 
-        let cmd: Command = data[0];
+        let cmd: ControllerCommand = data[0];
 
         if (this._onPacket) {
             return this._onPacket(cmd, data.slice(1));
@@ -39,11 +39,11 @@ export class Controller {
         return false;
     }
 
-    public start(path: string): Promise<Command> {
+    public start(path: string): Promise<ControllerCommand> {
         logger.verbose("Starting program: " + path);
         return new Promise((resolve, reject) => {
-            this._onPacket = (cmd: Command, data: Buffer) => {
-                if (cmd == Command.OK) {
+            this._onPacket = (cmd: ControllerCommand, data: Buffer) => {
+                if (cmd == ControllerCommand.OK) {
                     resolve(cmd);
                 } else {
                     reject(cmd);
@@ -52,7 +52,7 @@ export class Controller {
             };
 
             let packet = this._out.buildPacket();
-            packet.put(Command.START);
+            packet.put(ControllerCommand.START);
             for (let c of path) {
                 packet.put(c.charCodeAt(0));
             }
@@ -60,11 +60,11 @@ export class Controller {
         });
     }
 
-    public stop(): Promise<Command> {
+    public stop(): Promise<ControllerCommand> {
         logger.verbose("Stopping program");
         return new Promise((resolve, reject) => {
-            this._onPacket = (cmd: Command, data: Buffer) => {
-                if (cmd == Command.OK) {
+            this._onPacket = (cmd: ControllerCommand, data: Buffer) => {
+                if (cmd == ControllerCommand.OK) {
                     resolve(cmd);
                 } else {
                     reject(cmd);
@@ -73,7 +73,7 @@ export class Controller {
             };
 
             let packet = this._out.buildPacket();
-            packet.put(Command.STOP);
+            packet.put(ControllerCommand.STOP);
             packet.send();
         });
     }
@@ -81,8 +81,8 @@ export class Controller {
     public status(): Promise<{ running: boolean, exitCode?: number, status: string }> {
         logger.verbose("Getting status");
         return new Promise((resolve, reject) => {
-            this._onPacket = (cmd: Command, data: Buffer) => {
-                if (cmd == Command.STATUS && data.length > 0) {
+            this._onPacket = (cmd: ControllerCommand, data: Buffer) => {
+                if (cmd == ControllerCommand.STATUS && data.length > 0) {
                     resolve({
                         running: data[0] == 1,
                         exitCode: data[1],
@@ -95,7 +95,7 @@ export class Controller {
             };
 
             let packet = this._out.buildPacket();
-            packet.put(Command.STATUS);
+            packet.put(ControllerCommand.STATUS);
             packet.send();
         });
     }

@@ -1,6 +1,6 @@
 import { JacDevice } from "../device/jacDevice.js";
-import { SerialStream } from "../link/serialStream.js";
-import { SocketStream } from "../link/socketStream.js";
+import { SerialStream } from "../link/streams/serialStream.js";
+import { SocketStream } from "../link/streams/socketStream.js";
 import { SerialPort } from "serialport";
 import { stdout } from "process";
 

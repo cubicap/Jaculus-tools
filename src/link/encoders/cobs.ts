@@ -17,6 +17,7 @@ class PacketStructure {
 };
 
 // TODO: return reference to buffer
+// TODO: change interface to be more like the C++ version
 
 export class Serializer extends PacketStructure {
     private _dataSize: number = 0;

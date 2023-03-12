@@ -1,10 +1,11 @@
+#!/usr/bin/env node
+
 import { Command, OptionValues } from "commander";
 
 const program = new Command();
 program
     .name("jac")
     .description("Tools for controlling devices running Jaculus")
-    .executableDir("src/commands")
     .option("-l, --log-level [level]", "Log level", "info");
 
 let { operands, unknown } = program.parseOptions(process.argv);
