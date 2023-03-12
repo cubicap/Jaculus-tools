@@ -1,4 +1,4 @@
-import { Command, OptionValues } from "commander";
+import { Command } from "commander";
 import path from "path";
 import { compile } from "../code/compiler.js";
 import * as fs from "fs";

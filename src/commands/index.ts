@@ -32,5 +32,7 @@ program.command("status", "Get device status");
 
 program.command("compile", "Compile TypeScript files");
 
+program.command("install", "Install Jaculus on device");
+
 
 program.parse([...operands, ...unknown]);

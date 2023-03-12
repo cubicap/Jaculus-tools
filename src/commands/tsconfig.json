@@ -17,6 +17,7 @@
         "jac-stop.ts",
         "jac-status.ts",
         "jac-compile.ts",
+        "jac-install.ts",
         "index.ts"
     ],
     "references": [
