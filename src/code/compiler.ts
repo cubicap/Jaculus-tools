@@ -2,6 +2,20 @@ import { stderr } from "process";
 import { Writable } from "stream";
 import ts from "typescript";
 
+function printMessage(message: string | ts.DiagnosticMessageChain, stream: Writable = stderr, indent = 0) {
+    if (typeof message === "string") {
+        stream.write(" ".repeat(indent * 2) + message + "\n");
+    }
+    else {
+        stream.write(" ".repeat(indent * 2) + message.messageText + "\n");
+        if (message.next) {
+            for (let next of message.next) {
+                printMessage(next, stream, indent + 1);
+            }
+        }
+    }
+}
+
 export function compile(fileNames: string[], outDir: string, err: Writable = stderr): boolean {
     let options: ts.CompilerOptions = {
         target: ts.ScriptTarget.ES2020,
@@ -21,11 +35,11 @@ export function compile(fileNames: string[], outDir: string, err: Writable = std
     allDiagnostics.forEach(diagnostic => {
         if (diagnostic.file) {
             let { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!);
-            err.write(`${diagnostic.file.fileName} (${line + 1},${character + 1}): `);
-            err.write(diagnostic.messageText + "\n");
+            printMessage(`${diagnostic.file.fileName} (${line + 1},${character + 1}): `);
+            printMessage(diagnostic.messageText);
         }
         else {
-            err.write(diagnostic.messageText + "\n");
+            printMessage(diagnostic.messageText);
         }
     });
 
