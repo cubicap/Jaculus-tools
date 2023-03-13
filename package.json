@@ -13,8 +13,7 @@
     "scripts": {
         "build": "tsc --build",
         "clean": "tsc --build --clean",
-        "test": "mocha",
-        "prepare": "npm run build"
+        "test": "mocha"
     },
     "bin": {
         "jac": "./dist/src/commands/index.js"
