@@ -26,8 +26,6 @@
         "dist"
     ],
     "dependencies": {
-        "@types/cli-progress": "^3.11.0",
-        "@types/unzipper": "^0.10.5",
         "chalk": "^5.2.0",
         "cli-progress": "^3.12.0",
         "commander": "^10.0.0",
@@ -39,8 +37,10 @@
     "devDependencies": {
         "@tsconfig/node16": "^1.0.3",
         "@types/chai": "^4.3.4",
+        "@types/cli-progress": "^3.11.0",
         "@types/mocha": "^10.0.1",
         "@types/node": "^18.14.1",
+        "@types/unzipper": "^0.10.5",
         "chai": "^4.3.7",
         "chai-bytes": "^0.1.2",
         "mocha": "^10.2.0",

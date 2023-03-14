@@ -4,7 +4,7 @@ import { defaultPort } from "./util.js";
 import * as net from "net";
 import { SerialPort } from "serialport";
 
-let cmd = new Command("Delete a file on device", {
+let cmd = new Command("Tunnel a serial port over a TCP socket", {
     action: async (options: Record<string, string | boolean>, args: Record<string, string>) => {
         let baudrate = options["baudrate"] as string;
         let socket = options["socket"] as string;

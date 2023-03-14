@@ -1,3 +1,3 @@
 import { print } from "stdio";
 
-print("Hello from timer\n");
+print("Hello World!\n");

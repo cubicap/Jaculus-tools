@@ -244,10 +244,11 @@ let cmd = new Command("Install Jaculus to device", {
         stdout.write(chalk.green("\nJaculus flashed successfully!\n"));
     },
     options: {
-        "idf": new Opt("Path to ESP-IDF [<path>, download, force-download]", { defaultValue: "download" }),
+        "idf": new Opt("Path to ESP-IDF 5.0 [<path>, download, force-download]", { defaultValue: "download" }),
         "platform": new Opt("Platform to build for [" + platforms.join(", ") + "]", { defaultValue: "esp32" }),
         "force-download": new Opt("Force redownload of Jaculus", { isFlag: true }),
-    }
+    },
+    description: "Requires Python, git and device driver to be installed.\nIf --idf=download, it will be automatically downloaded and setup.\n"
 });
 
 export default cmd;

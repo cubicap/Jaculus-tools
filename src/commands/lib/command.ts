@@ -180,16 +180,18 @@ export class Arg {
 
 export class Command {
     private options: Record<string, Opt> = {};
-    public description: string;
+    public brief: string;
+    public description?: string;
     private args: Arg[] = [];
     private action?: (options: Record<string, string | boolean>, args: Record<string, string>) => Promise<void>;
 
-    constructor(description: string, options: { options?: Record<string, Opt>, args?: Arg[], action?: (options: Record<string, string | boolean>, args: Record<string, string>) => Promise<void> } = {}) {
+    constructor(brief: string, options: { options?: Record<string, Opt>, args?: Arg[], action?: (options: Record<string, string | boolean>, args: Record<string, string>) => Promise<void>, description?: string } = {}) {
         this.options = options.options ?? {};
         this.args = options.args ?? [];
         this.action = options.action;
+        this.description = options.description;
 
-        this.description = description;
+        this.brief = brief;
     }
 
     public help(command: string): string {
@@ -203,24 +205,30 @@ export class Command {
             }
         }
         let help = `Usage: ${command} [OPTIONS]${args}\n\n`;
-        help += `${this.description}\n\n`;
+        help += `${this.brief}\n\n`;
+
+        if (this.description) {
+            help += `${this.description}\n\n`;
+        }
 
         let table = [];
         for (const [name, opt] of Object.entries(this.options)) {
-            table.push([`--${name}`, opt.description]);
+            let desc = opt.description + (opt.defaultValue ? ` (default: ${opt.defaultValue})` : "");
+            table.push([`--${name}`, desc]);
         }
         if (table.length > 0) {
             help += `Options:\n`;
-            help += tableToString(table, { padding: 2, indent: 2 });
+            help += tableToString(table, { padding: 2, indent: 2, minWidths: [12] });
         }
 
         table = [];
         for (const arg of this.args) {
-            table.push([arg.name, arg.description]);
+            let desc = arg.description + (arg.defaultValue ? ` (default: ${arg.defaultValue})` : "");
+            table.push([arg.name, desc]);
         }
         if (table.length > 0) {
             help += `Arguments:\n`;
-            help += tableToString(table, { padding: 2, indent: 2 });
+            help += tableToString(table, { padding: 2, indent: 2, minWidths: [12] });
         }
 
         return help;
@@ -274,16 +282,17 @@ export class Program {
         out += "Commands:\n";
         let table: string[][] = [];
         for (const [name, command] of Object.entries(this.commands)) {
-            table.push([name, command.description]);
+            table.push([name, command.brief]);
         }
         out += tableToString(table, { padding: 2, indent: 2, minWidths: [12] });
 
         out += "\nGlobal options:\n";
         table = [];
         for (const [name, opt] of Object.entries(this.globalOptions)) {
-            table.push([`--${name}`, opt.description]);
+            let desc = opt.description + (opt.defaultValue ? ` (default: ${opt.defaultValue})` : "");
+            table.push([`--${name}`, desc]);
         }
-        out += tableToString(table, { padding: 2, indent: 2 });
+        out += tableToString(table, { padding: 2, indent: 2, minWidths: [12] });
 
         return out;
     }

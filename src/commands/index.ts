@@ -49,34 +49,34 @@ jac.addCommand("help", new Command("Print help for given command", {
 import listPorts from "./list-ports.js";
 import serialSocket from "./serial-socket.js";
 import install from "./install.js";
+import compile from "./compile.js";
+import flash from "./flash.js";
 import ls from "./ls.js";
 import read from "./read.js";
 import write from "./write.js";
-import mkdir from "./mkdir.js";
 import rm from "./rm.js";
+import mkdir from "./mkdir.js";
 import rmdir from "./rmdir.js";
-import flash from "./flash.js";
 import upload from "./upload.js";
 import start from "./start.js";
 import stop from "./stop.js";
 import status from "./status.js";
-import compile from "./compile.js";
 import monitor from "./monitor.js";
 
 jac.addCommand("list-ports", listPorts);
 jac.addCommand("serial-socket", serialSocket);
 jac.addCommand("install", install);
+jac.addCommand("compile", compile);
+jac.addCommand("flash", flash);
 
 jac.addCommand("ls", ls);
 jac.addCommand("read", read);
 jac.addCommand("write", write);
-jac.addCommand("mkdir", mkdir);
 jac.addCommand("rm", rm);
+jac.addCommand("mkdir", mkdir);
 jac.addCommand("rmdir", rmdir);
 jac.addCommand("upload", upload);
-jac.addCommand("flash", flash);
 
-jac.addCommand("compile", compile);
 
 jac.addCommand("start", start);
 jac.addCommand("stop", stop);

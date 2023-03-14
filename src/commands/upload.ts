@@ -8,12 +8,12 @@ let cmd = new Command("Upload a file/directory to device", {
         let port = options["port"] as string;
         let baudrate = options["baudrate"] as string;
         let socket = options["socket"] as string;
-        let from = args["from"] as string;
-        let to = args["to"] as string;
+        let local = args["local"] as string;
+        let remote = args["remote"] as string;
 
         let device = await getDevice(port, baudrate, socket);
 
-        let cmd = await device.uploader.upload(from, to).catch((err) => {
+        let cmd = await device.uploader.upload(local, remote).catch((err) => {
             stdout.write("Error: " + err + "\n");
             process.exit(1);
         });
@@ -21,8 +21,8 @@ let cmd = new Command("Upload a file/directory to device", {
         stdout.write(cmd.toString() + "\n");
     },
     args: [
-        new Arg("from", "File to upload", { required: true }),
-        new Arg("to", "Remote file to upload to", { required: true }),
+        new Arg("local", "File to upload", { required: true }),
+        new Arg("remote", "Remote file to upload to", { required: true }),
     ]
 });
 
