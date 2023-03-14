@@ -1,6 +1,6 @@
 import { Command } from "./lib/command.js";
 import { stdout } from "process";
-import { getDevice } from "./util.js";
+import { withDevice } from "./util.js";
 
 
 let cmd = new Command("Monitor program output", {
@@ -9,13 +9,13 @@ let cmd = new Command("Monitor program output", {
         let baudrate = options["baudrate"] as string;
         let socket = options["socket"] as string;
 
-        let device = await getDevice(port, baudrate, socket);
+        await withDevice(port, baudrate, socket, async (device) => {
+            device.programOutput.onData((data) => {
+                stdout.write(data);
+            });
 
-        device.programOutput.onData((data) => {
-            stdout.write(data);
+            return new Promise((resolve, reject) => {});
         });
-
-        return new Promise((resolve, reject) => {});
     }
 });
 

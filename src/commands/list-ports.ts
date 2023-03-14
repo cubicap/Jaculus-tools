@@ -2,6 +2,7 @@ import { Command } from "./lib/command.js";
 import { stdout } from "process";
 import { SerialPort } from "serialport";
 
+
 let cmd = new Command("List available serial ports", {
     action: async (options: Record<string, string | boolean>, args: Record<string, string>) => {
         stdout.write("Available serial ports:\n");

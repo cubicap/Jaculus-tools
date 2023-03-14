@@ -83,3 +83,10 @@ export async function getDevice(port?: string, baudrate?: string, socket?: strin
 
     return device;
 }
+
+export async function withDevice(port: string | undefined, baudrate: string | undefined, socket: string | undefined,
+                                 action: (device: JacDevice) => Promise<void>): Promise<void> {
+    let device = await getDevice(port, baudrate, socket);
+    await action(device);
+    await device.destroy();
+}

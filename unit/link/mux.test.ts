@@ -28,7 +28,7 @@ class Pipe implements InputStream, OutputStream {
 
     onEnd(callback?: (() => void) | undefined): void {}
     onError(callback?: ((err: any) => void) | undefined): void {}
-    destroy(): void {}
+    destroy(): Promise<void> { return Promise.resolve(); }
 
     onSend(callback: (data: Buffer) => void): void {
         this._onSend = callback;

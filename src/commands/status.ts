@@ -1,6 +1,6 @@
 import { Command } from "./lib/command.js";
 import { stdout } from "process";
-import { getDevice } from "./util.js";
+import { withDevice } from "./util.js";
 
 
 let cmd = new Command("Get status of device", {
@@ -10,18 +10,18 @@ let cmd = new Command("Get status of device", {
         let socket = options["socket"] as string;
         let path = args["path"] as string;
 
-        let device = await getDevice(port, baudrate, socket);
+        await withDevice(port, baudrate, socket, async (device) => {
+            let status = await device.controller.status().catch((err) => {
+                stdout.write("Error: " + err + "\n");
+                process.exit(1);
+            });
 
-        let status = await device.controller.status().catch((err) => {
-            stdout.write("Error: " + err + "\n");
-            process.exit(1);
+            stdout.write("Running: " + status.running + "\n");
+            if (!status.running) {
+                stdout.write("Last exit code: " + status.exitCode + "\n");
+            }
+            stdout.write(status.status + "\n");
         });
-
-        stdout.write("Running: " + status.running + "\n");
-        if (!status.running) {
-            stdout.write("Last exit code: " + status.exitCode + "\n");
-        }
-        stdout.write(status.status + "\n");
     }
 });
 

@@ -5,7 +5,7 @@ export interface OutputStream {
     onEnd(callback?: () => void): void
     onError(callback?: (err: any) => void): void
 
-    destroy(): void
+    destroy(): Promise<void>
 }
 
 
@@ -14,7 +14,7 @@ export interface InputStream {
     onEnd(callback?: () => void): void
     onError(callback?: (err: any) => void): void
 
-    destroy(): void
+    destroy(): Promise<void>
 }
 
 

@@ -27,7 +27,11 @@ To see help for a specific command, use:
 
     $ jac help <command>
 
+To connect to the device using serial port, correct driver must be installed - most likely [CP210x USB to UART Bridge](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers).
+
 ### Installing Jaculus to the device
+
+This step requires Python and git to be installed
 
 To install Jaculus to the device, use:
 

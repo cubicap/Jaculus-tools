@@ -47,7 +47,7 @@ export class JacDevice {
         this._mux.onEnd(callback);
     }
 
-    public destroy(): void {
-        this._mux.destroy();
+    public destroy(): Promise<void> {
+        return this._mux.destroy();
     }
 }

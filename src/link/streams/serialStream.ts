@@ -81,7 +81,28 @@ export class SerialStream implements Duplex {
         this.callbacks["error"] = callback
     }
 
-    public destroy(): void {
-        this.port.close()
+    public destroy(): Promise<void> {
+        if (this.port.closing || this.port.closed) {
+            return Promise.resolve()
+        }
+
+        return new Promise((resolve, reject) => {
+            this.port.close((err) => {
+                if (err) {
+                    if (this.callbacks["error"]) {
+                        this.callbacks["error"](err)
+                    }
+                    if (this.callbacks["end"]) {
+                        this.callbacks["end"]()
+                    }
+                    reject(err)
+                } else {
+                    if (this.callbacks["end"]) {
+                        this.callbacks["end"]()
+                    }
+                    resolve()
+                }
+            })
+        })
     }
 }

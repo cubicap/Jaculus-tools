@@ -1,14 +1,19 @@
 import { Command } from "./lib/command.js";
 import { stdout } from "process";
-import { defaultPort } from "./util.js";
+import { defaultPort, defaultSocket } from "./util.js";
 import * as net from "net";
 import { SerialPort } from "serialport";
+
 
 let cmd = new Command("Tunnel a serial port over a TCP socket", {
     action: async (options: Record<string, string | boolean>, args: Record<string, string>) => {
         let baudrate = options["baudrate"] as string;
-        let socket = options["socket"] as string;
+        let socket = defaultSocket(options["socket"] as string | undefined);
         let portPath = await defaultPort(options["port"] as string | undefined);
+
+        if (socket.startsWith("localhost:")) {
+            socket = socket.slice("localhost:".length);
+        }
 
         stdout.write("Tunneling " + portPath + "\n");
 

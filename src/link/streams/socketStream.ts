@@ -75,7 +75,37 @@ export class SocketStream implements Duplex {
         this.callbacks["error"] = callback
     }
 
-    public destroy(): void {
-        this.socket.destroy()
+    public destroy(): Promise<void> {
+        if (this.socket.destroyed) {
+            return Promise.resolve()
+        }
+
+        return new Promise((resolve, reject) => {
+            if (this.callbacks["end"]) {
+                let end = this.callbacks["end"]
+                this.callbacks["end"] = () => {
+                    end()
+                    resolve()
+                }
+            }
+            else {
+                this.callbacks["end"] = () => {
+                    resolve()
+                }
+            }
+            if (this.callbacks["error"]) {
+                let error = this.callbacks["error"]
+                this.callbacks["error"] = (err: any) => {
+                    error(err)
+                    reject(err)
+                }
+            }
+            else {
+                this.callbacks["error"] = (err: any) => {
+                    reject(err)
+                }
+            }
+            this.socket.destroy()
+        })
     }
 }

@@ -1,6 +1,6 @@
 import { Arg, Command } from "./lib/command.js";
 import { stdout } from "process";
-import { getDevice } from "./util.js";
+import { withDevice } from "./util.js";
 
 
 let cmd = new Command("Delete a file on device", {
@@ -10,14 +10,14 @@ let cmd = new Command("Delete a file on device", {
         let socket = options["socket"] as string;
         let path = args["path"] as string;
 
-        let device = await getDevice(port, baudrate, socket);
+        await withDevice(port, baudrate, socket, async (device) => {
+            let cmd = await device.uploader.deleteFile(path).catch((err) => {
+                stdout.write("Error: " + err + "\n");
+                process.exit(1);
+            });
 
-        let cmd = await device.uploader.deleteFile(path).catch((err) => {
-            stdout.write("Error: " + err + "\n");
-            process.exit(1);
+            stdout.write(cmd.toString() + "\n");
         });
-
-        stdout.write(cmd.toString() + "\n");
     },
     args: [
         new Arg("path", "File to delete", { required: true }),

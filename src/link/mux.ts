@@ -116,7 +116,7 @@ export class Mux {
         });
     }
 
-    public destroy(): void {
-        this._stream.destroy();
+    public destroy(): Promise<void> {
+        return this._stream.destroy();
     }
 };
