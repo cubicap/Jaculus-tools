@@ -1,7 +1,7 @@
 import "mocha"
 import chai from "chai"
 import chaiBytes from "chai-bytes";
-import { Packetizer, Serializer } from "../../src/link/encoders/cobs.js";
+import { CobsPacketizer, CobsSerializer } from "../../src/link/encoders/cobs.js";
 
 chai.use(chaiBytes);
 const expect = chai.expect;
@@ -16,7 +16,7 @@ function toBuffer(data: Array<number|string>): Buffer {
 
 describe("Cobs", () => {
     describe("Serialize", () => {
-        const capacity = new Serializer().capacity();
+        const capacity = new CobsSerializer().capacity();
         // [comment, channel, original, numTrue, encoded]
         let testData: [string, number, number[], number, Array<number|string>][] = [
             [ "Empty packet", 0, [], 0, [ 0, 4, 1, 1, 1, 1 ] ],
@@ -31,7 +31,7 @@ describe("Cobs", () => {
         ];
 
         testData.forEach(([comment, channel, original, numTrue, encoded]) => {
-            let serializer = new Serializer();
+            let serializer = new CobsSerializer();
 
             it(comment, () => {
                 serializer.reset();
@@ -54,7 +54,7 @@ describe("Cobs", () => {
 
     describe("Packetizer", () => {
 
-        const capacity = new Serializer().capacity();
+        const capacity = new CobsSerializer().capacity();
 
         // [comment, channel, original, encoded]
         let testData: [string, number, number[], Array<number|string>][] = [
@@ -69,8 +69,8 @@ describe("Cobs", () => {
         ];
 
         testData.forEach(([comment, channel, original, encoded]) => {
-            let packetizer = new Packetizer();
-            let serializer = new Serializer();
+            let packetizer = new CobsPacketizer();
+            let serializer = new CobsSerializer();
 
             it(comment, () => {
                 packetizer.reset();
@@ -97,7 +97,7 @@ describe("Cobs", () => {
 
     describe("Serialize-packetize", () => {
 
-        const capacity = new Serializer().capacity();
+        const capacity = new CobsSerializer().capacity();
 
         // [comment, channel, original]
         let testData: [string, number, number[]][] = [
@@ -113,8 +113,8 @@ describe("Cobs", () => {
 
         testData.forEach(([comment, channel, original]) => {
 
-            let serializer = new Serializer();
-            let packetizer = new Packetizer();
+            let serializer = new CobsSerializer();
+            let packetizer = new CobsPacketizer();
             it(comment, () => {
                 for (let i = 0; i < original.length; i++) {
                     if (i < capacity - 1) {

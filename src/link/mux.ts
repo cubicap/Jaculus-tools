@@ -1,32 +1,38 @@
-import { Packetizer, Serializer } from "./encoders/cobs.js";
+import { Packetizer, Serializer } from "./encoders/interface.js";
 import { Consumer, Packet } from "./linkTypes.js";
 import { Duplex } from "./stream.js";
 import { logger } from "../util/logger.js";
 
+
 class MuxPacket implements Packet {
     private _mux: Mux;
     private _channel: number;
+    private _serializer: Serializer;
 
-    public constructor(mux: Mux, channel: number) {
+    public constructor(mux: Mux, channel: number, serializer: Serializer) {
         this._mux = mux;
         this._channel = channel;
+        this._serializer = serializer;
     }
 
     public put(c: number): boolean {
-        return this._mux._serializer.put(c);
+        return this._serializer.put(c);
     }
 
     public space(): number {
-        return this._mux._serializer.capacity() - this._mux._serializer.size();
+        return this._serializer.capacity() - this._serializer.size();
     }
 
     public send(): void {
-        this._mux._stream.write(this._mux._serializer.finalize(this._channel));
+        this._mux._stream.write(this._serializer.finalize(this._channel));
     }
 };
 
 
 export class Mux {
+    private PacketizerCtor: new () => Packetizer;
+    private SerializerCtor: new () => Serializer;
+
     // TODO: set private
     public _stream: Duplex;
 
@@ -34,16 +40,26 @@ export class Mux {
     private _globalCallback?: (channel: number, data: Buffer) => void;
 
     // TODO: set private
-    public _packetizer: Packetizer = new Packetizer();
-    public _serializer: Serializer = new Serializer();
+    public _packetizer: Packetizer;
+    public _serializerCapacity: number;
 
-    public constructor(stream: Duplex) {
+    public closed: boolean = false;
+
+    public constructor(PacketizerCtor: new () => Packetizer, SerializerCtor: new () => Serializer, stream: Duplex) {
         this._stream = stream;
         this._channels = {};
         this._stream.onData((data: Buffer) => this.receive(data));
+
+        this.PacketizerCtor = PacketizerCtor;
+        this.SerializerCtor = SerializerCtor;
+        this._packetizer = new this.PacketizerCtor();
+        this._serializerCapacity = new this.SerializerCtor().capacity();
     }
 
     private receive(data: Buffer): void {
+        if (this.closed) {
+            throw new Error("Mux is closed");
+        }
         logger.silly("receive『" + data.reduce((a, b) => a + String.fromCharCode(b), "") + "』");
         for (let c of data) {
             if (this._packetizer.put(c)) {
@@ -65,11 +81,14 @@ export class Mux {
     }
 
     public buildPacket(channel: number): Packet {
-        return new MuxPacket(this, channel);
+        if (this.closed) {
+            throw new Error("Mux is closed");
+        }
+        return new MuxPacket(this, channel, new this.SerializerCtor());
     }
 
     public maxPacketSize(): number {
-        return this._serializer.capacity();
+        return this._serializerCapacity;
     }
 
     public subscribeChannel(channel: number, consumer?: Consumer): void {
@@ -82,5 +101,22 @@ export class Mux {
 
     public setGlobalCallback(callback?: (channel: number, data: Buffer) => void) {
         this._globalCallback = callback;
+    }
+
+    public onError(callback: (err: any) => void) {
+        this._stream.onError(callback);
+    }
+
+    public onEnd(callback?: () => void): void {
+        this._stream.onEnd(() => {
+            this.closed = true;
+            if (callback) {
+                callback();
+            }
+        });
+    }
+
+    public destroy(): void {
+        this._stream.destroy();
     }
 };

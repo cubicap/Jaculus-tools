@@ -6,6 +6,7 @@ import {
 } from "../link/muxCommunicator.js";
 import { Uploader } from "./uploader.js";
 import { Controller } from "./controller.js";
+import { CobsPacketizer, CobsSerializer } from "../link/encoders/cobs.js";
 
 
 export class JacDevice {
@@ -20,7 +21,7 @@ export class JacDevice {
     public uploader: Uploader;
 
     public constructor(connection: Duplex) {
-        this._mux = new Mux(connection);
+        this._mux = new Mux(CobsPacketizer, CobsSerializer, connection);
 
         this.programOutput = new UnboundedBufferedInputStreamCommunicator(this._mux, 2);
         this.programInput = new TransparentOutputStreamCommunicator(this._mux, 2);
@@ -36,5 +37,17 @@ export class JacDevice {
             new UnboundedBufferedInputPacketCommunicator(this._mux, 1),
             new TransparentOutputPacketCommunicator(this._mux, 1)
         );
+    }
+
+    public onError(callback: (err: any) => void): void {
+        this._mux.onError(callback);
+    }
+
+    public onEnd(callback: () => void): void {
+        this._mux.onEnd(callback);
+    }
+
+    public destroy(): void {
+        this._mux.destroy();
     }
 }

@@ -5,6 +5,7 @@ import { Mux } from "../../src/link/mux.js";
 import Queue from "queue-fifo"
 import { InputStream, OutputStream } from "../../src/link/stream.js";
 import { Consumer } from "../../src/link/linkTypes.js";
+import { CobsPacketizer, CobsSerializer } from "../../src/link/encoders/cobs.js";
 
 chai.use(chaiBytes);
 const expect = chai.expect;
@@ -24,6 +25,10 @@ class Pipe implements InputStream, OutputStream {
     onData(callback: (data: Buffer) => void): void {
         this._onData = callback;
     }
+
+    onEnd(callback?: (() => void) | undefined): void {}
+    onError(callback?: ((err: any) => void) | undefined): void {}
+    destroy(): void {}
 
     onSend(callback: (data: Buffer) => void): void {
         this._onSend = callback;
@@ -59,8 +64,8 @@ describe("Mux", () => {
         pipe1.onSend((data: Buffer) => pipe2.receive(data));
         pipe2.onSend((data: Buffer) => pipe1.receive(data));
 
-        let mux1 = new Mux(pipe1);
-        let mux2 = new Mux(pipe2);
+        let mux1 = new Mux(CobsPacketizer, CobsSerializer, pipe1);
+        let mux2 = new Mux(CobsPacketizer, CobsSerializer, pipe2);
 
         const capacity = mux1.maxPacketSize();
 

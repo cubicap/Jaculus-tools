@@ -1,3 +1,5 @@
+import { Serializer, Packetizer } from "./interface";
+
 class PacketStructure {
     protected DELIMITER = 0x00;
     protected SIZE_CHECKSUM = 2;
@@ -19,7 +21,7 @@ class PacketStructure {
 // TODO: return reference to buffer
 // TODO: change interface to be more like the C++ version
 
-export class Serializer extends PacketStructure {
+export class CobsSerializer extends PacketStructure implements Serializer {
     private _dataSize: number = 0;
 
     public capacity(): number {
@@ -81,7 +83,7 @@ export class Serializer extends PacketStructure {
     }
 };
 
-export class Packetizer extends PacketStructure {
+export class CobsPacketizer extends PacketStructure implements Packetizer {
     private length = 0;
 
     private expectedLength(): number {

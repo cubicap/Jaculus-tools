@@ -1,52 +1,81 @@
 import { Duplex } from "../stream.js"
 import * as net from "net"
 
+
 export class SocketStream implements Duplex {
     private callbacks: {
-        "data": (data: Buffer) => void,
-        "error": (err: any) => void,
-    }
+        "data"?: (data: Buffer) => void,
+        "error"?: (err: any) => void,
+        "end"?: () => void
+    } = {}
 
     private socket: net.Socket
 
-    constructor(host: string, port: number, callbacks: {
-        "data"?: (data: Buffer) => void,
-        "error"?: (err: any) => void
+    constructor(host: string, port: number, openCallbacks: {
+        "open"?: () => void,
+        "error"?: (err: any) => void,
     } = {}) {
-        this.callbacks = {
-            "data": callbacks["data"] || ((data: Buffer) => {}),
-            "error": callbacks["error"] || ((err: any) => {})
-        }
+        this.socket = new net.Socket()
+        this.socket.setTimeout(1000)
 
-        let socket = new net.Socket()
-        socket.setTimeout(1000)
+        this.socket.on("ready", () => {
+            if (openCallbacks["open"]) {
+                openCallbacks["open"]()
+            }
 
-        socket.on("data", (data: Buffer) => {
-            this.callbacks["data"](data)
+            // change error handler to a normal one
+            this.socket.on("error", (err: any) => {
+                if (this.callbacks["error"]) {
+                    this.callbacks["error"](err)
+                }
+            })
         })
 
-        socket.on("error", (err: any) => {
-            this.callbacks["error"](err)
+        // consider all errors open errors before the socket is ready
+        this.socket.on("error", (err: any) => {
+            if (openCallbacks["error"]) {
+                openCallbacks["error"](err)
+            }
         })
 
-        socket.on("close", () => {
-            this.callbacks["error"]("Socket closed")
+        this.socket.on("data", (data: Buffer) => {
+            if (this.callbacks["data"]) {
+                this.callbacks["data"](data)
+            }
         })
 
-        socket.connect(port, host)
-        this.socket = socket
+        this.socket.on("close", () => {
+            if (this.callbacks["end"]) {
+                this.callbacks["end"]()
+            }
+        })
+
+        this.socket.connect(port, host)
     }
 
 
-    put(c: number): void {
+    public put(c: number): void {
         this.socket.write(Buffer.from([c]))
     }
-    write(buf: Buffer): void {
+
+    public write(buf: Buffer): void {
         let bufCopy = Buffer.from(buf)
         this.socket.write(bufCopy)
     }
 
-    public onData(callback: (data: Buffer) => void): void {
+    public onData(callback?: (data: Buffer) => void): void {
         this.callbacks["data"] = callback
+    }
+
+    public onEnd(callback?: () => void): void {
+        this.callbacks["end"] = callback
+    }
+
+    public onError(callback?: (err: any) => void): void {
+        this.callbacks["error"] = callback
+    }
+
+    public destroy(): void {
+        this.socket.destroy()
     }
 }
