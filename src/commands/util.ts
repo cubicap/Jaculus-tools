@@ -3,6 +3,7 @@ import { SerialStream } from "../link/streams/serialStream.js";
 import { SocketStream } from "../link/streams/socketStream.js";
 import { SerialPort } from "serialport";
 import { stdout } from "process";
+import { logger } from "../util/logger.js";
 
 
 export async function defaultPort(value?: string): Promise<string> {
@@ -80,6 +81,15 @@ export async function getDevice(port?: string, baudrate?: string, socket?: strin
             process.exit(1);
         }}));
     }
+
+    device.logOutput.onData((data) => {
+        logger.info("Device: " + data.toString());
+    });
+
+    device.debugOutput.onData((data) => {
+        logger.debug("Device: " + data.toString());
+    });
+
 
     return device;
 }
