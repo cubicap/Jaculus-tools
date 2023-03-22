@@ -19,7 +19,7 @@ let jac = new Program("jac", "Tools for controlling devices running Jaculus", {
             process.exit(0);
         }
         if (options["verbose"]) {
-            logger.level = "verbose";
+            logger.level = "silly";
         }
     }
 });
@@ -49,7 +49,7 @@ jac.addCommand("help", new Command("Print help for given command", {
 import listPorts from "./list-ports.js";
 import serialSocket from "./serial-socket.js";
 import install from "./install.js";
-import compile from "./compile.js";
+import compile from "./build.js";
 import flash from "./flash.js";
 import ls from "./ls.js";
 import read from "./read.js";
@@ -66,7 +66,7 @@ import monitor from "./monitor.js";
 jac.addCommand("list-ports", listPorts);
 jac.addCommand("serial-socket", serialSocket);
 jac.addCommand("install", install);
-jac.addCommand("compile", compile);
+jac.addCommand("build", compile);
 jac.addCommand("flash", flash);
 
 jac.addCommand("ls", ls);
@@ -91,7 +91,7 @@ if (args.length === 0) {
     args.push("help");
 }
 
-jac.chain(args).then(() => {
+jac.run(args).then(() => {
     console.log("Done");
     process.exit(0);
 }

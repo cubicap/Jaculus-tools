@@ -16,10 +16,10 @@
         "start.ts",
         "stop.ts",
         "status.ts",
-        "compile.ts",
+        "build.ts",
         "install.ts",
         "index.ts",
-        "lib/*.ts", "compile.ts",
+        "lib/command.ts",
     ],
     "references": [
         {

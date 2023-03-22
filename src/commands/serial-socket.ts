@@ -15,7 +15,7 @@ let cmd = new Command("Tunnel a serial port over a TCP socket", {
             socket = socket.slice("localhost:".length);
         }
 
-        stdout.write("Tunneling " + portPath + "\n");
+        stdout.write("Tunneling " + portPath + " at " + baudrate + " bauds\n");
 
 
         let sockets: Set<net.Socket> = new Set();

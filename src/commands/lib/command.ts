@@ -143,6 +143,7 @@ function parseArgs(
     return { options, args, unknown };
 }
 
+export type Env = Record<string, { value: any, onEnd: (value: any) => void }>;
 
 export class Opt {
     public description: string;
@@ -182,14 +183,25 @@ export class Command {
     private options: Record<string, Opt> = {};
     public brief: string;
     public description?: string;
+    readonly chainable: boolean = false;
     private args: Arg[] = [];
-    private action?: (options: Record<string, string | boolean>, args: Record<string, string>) => Promise<void>;
+    private action?: (options: Record<string, string | boolean>, args: Record<string, string>, env: Env) => Promise<void>;
 
-    constructor(brief: string, options: { options?: Record<string, Opt>, args?: Arg[], action?: (options: Record<string, string | boolean>, args: Record<string, string>) => Promise<void>, description?: string } = {}) {
+    constructor(
+            brief: string,
+            options: {
+                options?: Record<string, Opt>,
+                args?: Arg[],
+                action?: (options: Record<string, string | boolean>, args: Record<string, string>, env: Env) => Promise<void>,
+                description?: string,
+                chainable?: boolean
+            } = {}
+        ) {
         this.options = options.options ?? {};
         this.args = options.args ?? [];
         this.action = options.action;
         this.description = options.description;
+        this.chainable = options.chainable ?? false;
 
         this.brief = brief;
     }
@@ -235,11 +247,11 @@ export class Command {
     }
 
 
-    public async run(argv: string[], globals: Record<string, string | boolean>): Promise<string[]> {
+    public async run(argv: string[], globals: Record<string, string | boolean>, env: Env): Promise<string[]> {
         const { options, args, unknown } = parseArgs(argv, globals, this.options, this.args);
 
         if (this.action) {
-            await this.action(options, args);
+            await this.action(options, args, env);
         }
 
         return unknown;
@@ -259,6 +271,7 @@ export class Program {
     private description: string;
     private globalOptions: Record<string, Opt> = {};
     private action?: (options: Record<string, string | boolean>) => Promise<void>;
+    public env: Env = {};
 
     constructor(name: string, description: string, options: { globalOptions?: Record<string, Opt>, action?: (options: Record<string, string | boolean>) => Promise<void> } = {}) {
         this.name = name;
@@ -297,29 +310,32 @@ export class Program {
         return out;
     }
 
-    public async run(argv: string[], globals: Record<string, string | boolean> = {}, runAction: boolean = true): Promise<string[]> {
-
-        if (runAction && this.action) {
-            await this.action(globals);
-        }
-
+    private async runInternal(argv: string[], globals: Record<string, string | boolean> = {}): Promise<string[]> {
         if (argv.length === 0) {
-            this.help();
-            return [];
+            throw new Error("No command specified");
         }
 
         const commandName = argv[0];
         const command = this.commands[commandName];
 
         if (command === undefined) {
-            this.help();
-            return [];
+            throw new Error(`Unknown command ${commandName}`);
         }
 
-        return command.run(argv.slice(1), globals);
+        return command.run(argv.slice(1), globals, this.env);
     }
 
-    public validate(argv: string[], globals: Record<string, string | boolean> = {}): void {
+    private async runSingle(argv: string[], globals: Record<string, string | boolean> = {}): Promise<string[]> {
+        this.validateSingle(argv, globals);
+
+        if (this.action) {
+            await this.action(globals);
+        }
+
+        return this.runInternal(argv, globals);
+    }
+
+    private validateSingle(argv: string[], globals: Record<string, string | boolean> = {}): void {
         let { options, unknown } = parseArgs(argv, globals, this.globalOptions, []);
 
         if (unknown.length === 0) {
@@ -333,23 +349,30 @@ export class Program {
             throw new Error(`Unknown command ${commandName}`);
         }
 
-        command.validate(unknown.slice(1), globals);
+        let remaining = command.validate(unknown.slice(1), globals);
+
+        if (remaining.length > 0) {
+            throw new Error(`Unknown option ${remaining[0]}`);
+        }
     }
 
-
-    public async chain(argv: string[], globals: Record<string, string | boolean> = {}): Promise<void> {
+    private async runChain(argv: string[], globals: Record<string, string | boolean> = {}): Promise<void> {
         let { options, unknown } = parseArgs(argv, globals, this.globalOptions, []);
 
         this.validateChain(unknown, options);
 
-        unknown = await this.run(unknown, options, true);
+        if (this.action) {
+            await this.action(globals);
+        }
+
+        unknown = await this.runInternal(unknown, options);
 
         while (unknown.length > 0) {
-            unknown = await this.run(unknown, options, false);
+            unknown = await this.runInternal(unknown, options);
         }
     }
 
-    public validateChain(argv: string[], globals: Record<string, string | boolean> = {}): void {
+    private validateChain(argv: string[], globals: Record<string, string | boolean> = {}): void {
         let { options, unknown } = parseArgs(argv, globals, this.globalOptions, []);
 
         if (unknown.length === 0) {
@@ -369,7 +392,47 @@ export class Program {
                 }
             }
 
+            if (!command.chainable) {
+                throw new Error(`Command ${commandName} is not chainable`);
+            }
+
             unknown = command.validate(unknown.slice(1), globals);
         }
+    }
+
+    private end(message: string, error: boolean = false): string {
+        for (const [_, { value, onEnd }] of Object.entries(this.env)) {
+            onEnd(value);
+        }
+
+        if (error) {
+            throw new Error(message);
+        }
+
+        return message;
+    }
+
+    public async run(argv: string[], globals: Record<string, string | boolean> = {}): Promise<void> {
+        let { options, unknown } = parseArgs(argv, globals, this.globalOptions, []);
+
+        if (unknown.length === 0) {
+            this.help();
+            return;
+        }
+
+        const commandName = unknown[0];
+        const command = this.commands[commandName];
+
+        if (command === undefined) {
+            this.help();
+            return;
+        }
+
+        if (command.chainable) {
+            await this.runChain(unknown, options);
+            return;
+        }
+
+        await this.runSingle(unknown, options);
     }
 }

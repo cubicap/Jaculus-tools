@@ -4,6 +4,7 @@ import { SocketStream } from "../link/streams/socketStream.js";
 import { SerialPort } from "serialport";
 import { stdout } from "process";
 import { logger } from "../util/logger.js";
+import { Env } from "./lib/command.js";
 
 
 export async function defaultPort(value?: string): Promise<string> {
@@ -61,7 +62,11 @@ export function parseSocket(value: string): [string, number] {
     return [parts[0], parseInt(parts[1])];
 }
 
-export async function getDevice(port?: string, baudrate?: string, socket?: string): Promise<JacDevice> {
+export async function getDevice(port: string | undefined, baudrate: string | undefined, socket: string | undefined, env: Env): Promise<JacDevice> {
+    if (env.device) {
+        return env.device.value as JacDevice;
+    }
+
     let where = await getPortSocket(port, socket);
     let device: JacDevice;
 
@@ -73,13 +78,16 @@ export async function getDevice(port?: string, baudrate?: string, socket?: strin
             process.exit(1);
         }}));
     }
-    else {
+    else if (where.type === "socket") {
         let [host, port] = parseSocket(where.value);
         stdout.write("Connected to socket at " + host + ":" + port + "\n\n");
         device = new JacDevice(new SocketStream(host, port, { "error": (err) => {
             stdout.write("Socket error: " + err.message + "\n");
             process.exit(1);
         }}));
+    }
+    else {
+        throw new Error("Invalid port/socket");
     }
 
     device.logOutput.onData((data) => {
@@ -90,13 +98,14 @@ export async function getDevice(port?: string, baudrate?: string, socket?: strin
         logger.debug("Device: " + data.toString());
     });
 
+    env.device = { value: device, onEnd: async (device: JacDevice) => { await device.destroy(); } };
 
     return device;
 }
 
-export async function withDevice(port: string | undefined, baudrate: string | undefined, socket: string | undefined,
+export async function withDevice(port: string | undefined, baudrate: string | undefined, socket: string | undefined, env: Env,
                                  action: (device: JacDevice) => Promise<void>): Promise<void> {
-    let device = await getDevice(port, baudrate, socket);
+    let device = await getDevice(port, baudrate, socket, env);
     await action(device);
     await device.destroy();
 }

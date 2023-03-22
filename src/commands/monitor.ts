@@ -1,22 +1,23 @@
-import { Command } from "./lib/command.js";
+import { Command, Env } from "./lib/command.js";
 import { stdout } from "process";
-import { withDevice } from "./util.js";
+import { getDevice } from "./util.js";
 
 
 let cmd = new Command("Monitor program output", {
-    action: async (options: Record<string, string | boolean>, args: Record<string, string>) => {
+    action: async (options: Record<string, string | boolean>, args: Record<string, string>, env: Env) => {
         let port = options["port"] as string;
         let baudrate = options["baudrate"] as string;
         let socket = options["socket"] as string;
 
-        await withDevice(port, baudrate, socket, async (device) => {
-            device.programOutput.onData((data) => {
-                stdout.write(data);
-            });
+        let device = await getDevice(port, baudrate, socket, env);
 
-            return new Promise((resolve, reject) => {});
+        device.programOutput.onData((data) => {
+            stdout.write(data);
         });
-    }
+
+        return new Promise((resolve, reject) => {});
+    },
+    chainable: true
 });
 
 export default cmd;

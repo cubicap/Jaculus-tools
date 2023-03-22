@@ -1,4 +1,4 @@
-import { Command, Arg } from "./lib/command.js";
+import { Command, Opt } from "./lib/command.js";
 import path from "path";
 import { compile } from "../code/compiler.js";
 import * as fs from "fs";
@@ -18,9 +18,9 @@ function listDts(dir: string): string[] {
 }
 
 
-let cmd = new Command("List files in a directory", {
+let cmd = new Command("Compile target file", {
     action: async (options: Record<string, string | boolean>, args: Record<string, string>) => {
-        let path_ = args["path"] as string;
+        let path_ = options["input"] as string;
 
         let parentDir = path.dirname(path_);
         let outDir = path.join(parentDir, "build");
@@ -29,9 +29,10 @@ let cmd = new Command("List files in a directory", {
 
         compile([path_, ...dts], outDir);
     },
-    args: [
-        new Arg("path", "File to compile", { required: true }),
-    ]
+    options: {
+        "input": new Opt("The input file", { required: true, defaultValue: "index.ts" }),
+    },
+    chainable: true
 });
 
 export default cmd;
