@@ -31,7 +31,9 @@ To connect to the device using serial port, correct driver must be installed - m
 
 ### Installing Jaculus to the device
 
-This step requires Python and git to be installed
+On Windows, this step requires Python 3 and git to be installed
+
+On Linux, this step requires python3, python3-venv, git, cmake
 
 To install Jaculus to the device, use:
 
@@ -67,20 +69,29 @@ Create a new TypeScript project, from the template provided in the `resources` d
 
 Compile the project to JavaScript:
 
-    $ jac compile <file>
+    $ jac compile
 
 The output will be written to the `build` directory.
 
-Flash the JavaScript program to the device (`<directory>` shoul point to the `build` directory):
+Flash the JavaScript program to the device:
 
-    $ jac flash <directory>
+    $ jac flash
 
-To run the program, first stop the currently running program, then start the new one:
+After flashing, the program will be immediately executed on the device.
 
-    $ jac stop
-    $ jac start <entry-point.js>
+The entry point of the program is the `index.ts` file in the root of the project.
 
-If the file `/data/index.js` exists, it will be used as the entry point on device boot.
+### Creating and running JavaScript programs
+
+Create a directory for your source files.
+
+Flash the JavaScript program to the device (`<path>` should point to the source directory):
+
+    $ jac flash --from <path>
+
+After flashing, the program will be immediately executed on the device.
+
+The entry point of the program is the `index.js` file in the source directory.
 
 ### Controlling the device and monitoring its output
 

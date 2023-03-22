@@ -1,13 +1,14 @@
 import { Command, Opt } from "./lib/command.js";
 import path from "path";
-import * as fs from "fs";
-import * as https from "https"
-import * as unzipper from "unzipper";
+import fs from "fs";
+import https from "https"
+import unzipper from "unzipper";
 import { logger } from "../util/logger.js";
-import * as cliProgress from "cli-progress";
+import cliProgress from "cli-progress";
 import { stdout, stderr } from "process";
-import * as child_process from "child_process";
+import child_process from "child_process";
 import chalk from "chalk"
+import os from "os";
 
 const platforms = ["esp32", "esp32s3"];
 
@@ -66,7 +67,7 @@ function downloadAndExtract(url: string, target: string): Promise<void> {
                         return value.toString();
                     },
                     format: "{bar} {percentage}% | {value}/{total} | {eta_formatted}",
-                    etaBuffer: 1000,
+                    etaBuffer: 3000,
                 }, cliProgress.Presets.legacy);
 
                 bar.start(totalSize, 0);
@@ -98,13 +99,18 @@ function downloadAndExtract(url: string, target: string): Promise<void> {
     });
 }
 
-function getDownloadsDir(): string {
-    return path.resolve(path.join(path.dirname(import.meta.url.replace("file:///", "")), "..", "..", "..", "download"));
+function getJaculusDataDir(): string {
+    let homeDir = os.homedir();
+    let jaculusDir = path.join(homeDir, ".jaculus");
+    if (!fs.existsSync(jaculusDir)) {
+        fs.mkdirSync(jaculusDir);
+    }
+    return jaculusDir;
 }
 
 function getIdfPath(path_?: string): string {
-    if (!path_ || ["download", "force-download"].includes(path_)) {
-        return path.resolve(path.join(getDownloadsDir(), idfDir));
+    if (!path_ || ["download", "force-download", "force-init"].includes(path_)) {
+        return path.resolve(path.join(getJaculusDataDir(), idfDir));
     }
     return path.resolve(path_);
 }
@@ -115,7 +121,7 @@ let cmd = new Command("Install Jaculus to device", {
         let platform = options["platform"] as string;
         let port = options["port"] as string;
         let idf = options["idf"] as string;
-        let forceDownload = options["force-download"] as boolean;
+        let forceDownloadJac = options["force-download-jac"] as boolean;
 
         if (!port) {
             stderr.write(chalk.red("No port specified\n"));
@@ -131,26 +137,39 @@ let cmd = new Command("Install Jaculus to device", {
         }
 
         if (idf == "force-download") {
-            stdout.write(chalk.green("Removing existing ESP-IDF\n"));
+            stdout.write(chalk.green("Removing existing ESP-IDF in " + getIdfPath() + "\n"));
             fs.rmSync(getIdfPath(), { recursive: true, force: true });
         }
 
         // ----- INSTALL ESP-IDF -----
         let idfPath = getIdfPath(idf);
-
+        let downloaded = false;
         if (["download", "force-download"].includes(idf) && !fs.existsSync(idfPath)) {
             let target = path.dirname(getIdfPath());
 
-            stdout.write(chalk.green("\nDownloading ESP-IDF from " + idfUrl + "\n"));
+            // download
+            stdout.write(chalk.green("\nDownloading ESP-IDF to " + target + " (from " + idfUrl + ")\n"));
             await downloadAndExtract(idfUrl, target)
             .catch((err) => {
+                // TODO: remove downloaded file
                 stderr.write(chalk.red("Error downloading ESP-IDF: " + err + "\n"));
                 process.exit(1);
             });
 
-            stdout.write("ESP-IDF downloaded to " + getIdfPath() + "\n");
+            stdout.write("ESP-IDF downloaded");
+            downloaded = true;
+        }
 
+        if (downloaded || idf == "force-init") {
+            fs.chmodSync(path.join(getIdfPath(), "install.sh"), 0o755);
+            fs.chmodSync(path.join(getIdfPath(), "install.bat"), 0o755);
 
+            fs.chmodSync(path.join(getIdfPath(), "export.sh"), 0o755);
+            fs.chmodSync(path.join(getIdfPath(), "export.bat"), 0o755);
+
+            fs.chmodSync(path.join(getIdfPath(), "tools", "idf.py"), 0o755);
+
+            // run install script
             let installScript: string;
             if (process.platform == "win32") {
                 installScript = path.join(getIdfPath(), "install.bat");
@@ -168,7 +187,8 @@ let cmd = new Command("Install Jaculus to device", {
             }
             catch (err) {
                 stderr.write(chalk.red("Error running ESP-IDF install script: " + err + "\n"));
-                stderr.write(chalk.red("You can try redownloading ESP-IDF with --idf=force-download or running the install script manually\n"));
+                stderr.write(chalk.red("Please check ESP-IDF error message and try again with --idf=force-init\n"));
+                stderr.write(chalk.red("If the problem persists, you can try redownloading ESP-IDF with --idf=force-download or running the install script manually\n"));
                 process.exit(1);
             }
         }
@@ -180,17 +200,18 @@ let cmd = new Command("Install Jaculus to device", {
         }
 
         // ----- DOWNLOAD JACULUS -----
-        let jacPath = path.join(getDownloadsDir(), jacDir);
+        let jacPath = path.join(getJaculusDataDir(), jacDir);
 
-        if (forceDownload && fs.existsSync(jacPath)) {
+        if (forceDownloadJac && fs.existsSync(jacPath)) {
             fs.rmSync(jacPath, { recursive: true, force: true });
         }
 
         if (!fs.existsSync(jacPath)) {
             stdout.write(chalk.green("\nDownloading Jaculus from " + jacUrl + "\n"));
 
-            await downloadAndExtract(jacUrl, getDownloadsDir())
+            await downloadAndExtract(jacUrl, getJaculusDataDir())
             .catch((err) => {
+                // TODO: remove downloaded file
                 stderr.write(chalk.red("Error downloading Jaculus: " + err + "\n"));
                 process.exit(1);
             });
@@ -218,35 +239,36 @@ let cmd = new Command("Install Jaculus to device", {
         // ----- BUILD AND FLASH JACULUS -----
         let idfCommand = "idf.py -p " + port + " build flash";
 
-        let exportFile: string;
+        let command: string;
         if (process.platform == "win32") {
-            exportFile = "export.bat";
+            command = `${path.join(idfPath, "export.bat")} && ${idfCommand}`;
         }
         else {
-            exportFile = "export.sh";
+            command = `bash -c "source ${path.join(idfPath, "export.sh")} && ${idfCommand}"`;
         }
 
         stdout.write(chalk.green("\nRunning build and flash\n\n"));
         try {
-            child_process.execSync(path.join(idfPath, exportFile) + " && " + idfCommand, {
+            child_process.execSync(command, {
                 stdio: "inherit",
                 cwd: jacPath
             });
         }
         catch (err) {
             stderr.write(chalk.red("Error running ESP-IDF: " + err + "\n"));
-            stderr.write(chalk.red("Check that the port is correct and that the device is connected\n"));
-            stderr.write(chalk.red("You can try redownloading Jaculus with --force-download to fix any build errors\n"));
-            stderr.write(chalk.red("You can also try redownloading ESP-IDF with --idf=force-download\n"));
+            stderr.write(chalk.red("Please check the ESP-IDF error message\n"));
+            stderr.write(chalk.red("Also check that the port is correct, the device is connected, device driver is installed and you have sufficient permissions\n"));
+            stderr.write(chalk.red("You can reinitialize ESP-IDF with --idf=force-init or try redownloading it with --idf=force-download\n"));
+            stderr.write(chalk.red("You can also try redownloading Jaculus with --force-download-jac to fix any build errors\n"));
             process.exit(1);
         }
 
         stdout.write(chalk.green("\nJaculus flashed successfully!\n"));
     },
     options: {
-        "idf": new Opt("Path to ESP-IDF 5.0 [<path>, download, force-download]", { defaultValue: "download" }),
-        "platform": new Opt("Platform to build for [" + platforms.join(", ") + "]", { defaultValue: "esp32" }),
-        "force-download": new Opt("Force redownload of Jaculus", { isFlag: true }),
+        "idf": new Opt("Path to ESP-IDF 5.0 [<path>, download, force-download, force-init]", { defaultValue: "download" }),
+        "platform": new Opt("Platform to build for [" + platforms.join(", ") + "]"),
+        "force-download-jac": new Opt("Force redownload of Jaculus", { isFlag: true }),
     },
     description: "Requires Python, git and device driver to be installed.\nIf --idf=download, it will be automatically downloaded and setup.\n"
 });
