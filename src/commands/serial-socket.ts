@@ -49,7 +49,7 @@ let cmd = new Command("Tunnel a serial port over a TCP socket", {
             for (let socket of sockets) {
                 socket.write(data);
             }
-            stdout.write("Port >> " + data.toString() + "\n");
+            stdout.write("Port >> 『" + data + "』\n");
         });
 
 
@@ -57,7 +57,7 @@ let cmd = new Command("Tunnel a serial port over a TCP socket", {
             sockets.add(socket);
 
             socket.on("data", (data) => {
-                stdout.write("Sock >> " + data.toString() + "\n");
+                stdout.write("Sock >> 『" + data + "』\n");
                 port.write(data);
             });
             socket.on("close", () => {

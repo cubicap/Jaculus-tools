@@ -1,4 +1,6 @@
 import { Serializer, Packetizer } from "./interface";
+import crc16 from 'crc/crc16'
+
 
 class PacketStructure {
     protected DELIMITER = 0x00;
@@ -18,7 +20,6 @@ class PacketStructure {
 
 };
 
-// TODO: return reference to buffer
 // TODO: change interface to be more like the C++ version
 
 export class CobsSerializer extends PacketStructure implements Serializer {
@@ -57,19 +58,13 @@ export class CobsSerializer extends PacketStructure implements Serializer {
         this.buffer[this.OFFSET_COBS] = this.DELIMITER;
         this.buffer[this.OFFSET_CHANNEL] = channel;
 
-        let crc = 0;
+        let crc = crc16(this.buffer.subarray(this.OFFSET_CHANNEL, crcOffset));
+        this.buffer[crcOffset] = crc & 0xFF;
+        this.buffer[crcOffset + 1] = (crc >> 8) & 0xFF;
+
         let prevDelim = 2;
 
         for (let i = 3; i < length; i++) {
-            // crc
-            if (i >= this.OFFSET_CHANNEL && i < crcOffset) {
-                // TODO: update crc
-            }
-            else if (i == crcOffset) {
-                this.buffer[crcOffset] = crc & 0xFF;
-                this.buffer[crcOffset + 1] = crc >> 8;
-            }
-
             // cobs
             if (this.buffer[i] == this.DELIMITER) {
                 this.buffer[prevDelim] = i - prevDelim;
@@ -79,7 +74,7 @@ export class CobsSerializer extends PacketStructure implements Serializer {
         this.buffer[prevDelim] = length - prevDelim;
         this.reset();
 
-        return Buffer.from(this.buffer.slice(0, length));
+        return Buffer.from(this.buffer.subarray(0, length));
     }
 };
 
@@ -123,7 +118,6 @@ export class CobsPacketizer extends PacketStructure implements Packetizer {
             return null;
         }
 
-        let crc = 0;
         let crcOffset = this.OFFSET_COBS + this.buffer[this.OFFSET_LENGTH] - this.SIZE_CHECKSUM;
         let nextDelimOff = 0;
 
@@ -133,12 +127,9 @@ export class CobsPacketizer extends PacketStructure implements Packetizer {
                 this.buffer[i] = this.DELIMITER;
             }
             nextDelimOff--;
-
-            if (i >= this.OFFSET_CHANNEL && i < crcOffset) {
-                // TODO: update crc
-            }
         }
 
+        let crc = crc16(this.buffer.subarray(this.OFFSET_CHANNEL, crcOffset));
         let crcReceived = this.buffer[crcOffset] | (this.buffer[crcOffset + 1] << 8);
 
         if (nextDelimOff != 0 || crc != crcReceived) {
@@ -147,7 +138,7 @@ export class CobsPacketizer extends PacketStructure implements Packetizer {
 
         return {
             channel: this.buffer[this.OFFSET_CHANNEL],
-            data: Buffer.from(this.buffer.slice(this.OFFSET_DATA, crcOffset))
+            data: Buffer.from(this.buffer.subarray(this.OFFSET_DATA, crcOffset))
         }
     }
 };
