@@ -19,7 +19,7 @@ let jac = new Program("jac", "Tools for controlling devices running Jaculus", {
             process.exit(0);
         }
         if (options["verbose"]) {
-            logger.level = "silly";
+            logger.level = "debug";
         }
     }
 });

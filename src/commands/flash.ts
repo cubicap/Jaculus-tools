@@ -14,7 +14,7 @@ let cmd = new Command("Flash a directory to device (replace contents of /data)",
         let device = await getDevice(port, baudrate, socket, env);
 
         await device.controller.stop().catch((err) => {
-            logger.debug("Error stopping device: " + err);
+            logger.verbose("Error stopping device: " + err);
         });
 
         await device.uploader.deleteDirectory("/data");
