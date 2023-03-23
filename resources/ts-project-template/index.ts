@@ -1,3 +1,4 @@
-import { print } from "stdio";
+import { stdout } from "stdio";
+import "./import.js";
 
-print("Hello World!\n");
+stdout.println("Hello World!");

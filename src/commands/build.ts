@@ -25,12 +25,10 @@ let cmd = new Command("Compile target file", {
         let parentDir = path.dirname(path_);
         let outDir = path.join(parentDir, "build");
 
-        let dts = listDts(path.join(parentDir, "@types"));
-
-        compile([path_, ...dts], outDir);
+        compile(path_, outDir);
     },
     options: {
-        "input": new Opt("The input file", { required: true, defaultValue: "index.ts" }),
+        "input": new Opt("The input directory", { required: true, defaultValue: "./" }),
     },
     chainable: true
 });

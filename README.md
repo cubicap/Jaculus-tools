@@ -65,7 +65,7 @@ To tunnel serial port over TCP, use:
 
 ### Creating and running TypeScript programs
 
-Create a new TypeScript project, from the template provided in the `resources` directory. *Currently, `tsconfig.json` is not processed by the tools and serves only as reference for ide support.*
+Create a new TypeScript project, from the template provided in the `resources` directory.
 
 Compile the project to JavaScript:
 
