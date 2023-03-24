@@ -1,19 +1,21 @@
 {
     "name": "jaculus-tools",
     "version": "0.0.1",
-    "description": "Tools for programming and controlling devices running Jaculus",
+    "description": "Companion app/library for Jaculus devices",
     "repository": {
         "type": "git",
-        "url": "git@github.com:cubicap/Jaculus-tools.git"
+        "url": "https://github.com/cubicap/Jaculus-tools.git"
     },
     "author": {
         "name": "Petr Kubica (cubicap)",
         "email": "cubicap@email.cz"
     },
+    "license": "GPL-3.0-only",
     "scripts": {
         "build": "tsc --build",
         "clean": "tsc --build --clean",
-        "test": "mocha"
+        "test": "mocha",
+        "prepack": "npm run clean && npm run build && npm run test"
     },
     "bin": {
         "jac": "./dist/src/commands/index.js"
