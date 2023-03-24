@@ -13,6 +13,11 @@ let cmd = new Command("Flash a directory to device (replace contents of /data)",
 
         let device = await getDevice(port, baudrate, socket, env);
 
+        await device.controller.lock().catch((err) => {
+            stdout.write("Error locking device: " + err);
+            process.exit(1);
+        });
+
         await device.controller.stop().catch((err) => {
             logger.verbose("Error stopping device: " + err);
         });
@@ -27,6 +32,11 @@ let cmd = new Command("Flash a directory to device (replace contents of /data)",
 
         await device.controller.start("/data/index.js").catch((err) => {
             stdout.write("Error starting program: " + err + "\n");
+            process.exit(1);
+        });
+
+        await device.controller.unlock().catch((err) => {
+            stdout.write("Error unlocking device: " + err);
             process.exit(1);
         });
     },

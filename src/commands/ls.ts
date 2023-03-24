@@ -12,6 +12,11 @@ let cmd = new Command("List files in a directory", {
 
         let device = await getDevice(port, baudrate, socket, env);
 
+        await device.controller.lock().catch((err) => {
+            stdout.write("Error locking device: " + err);
+            process.exit(1);
+        });
+
         let listing = await device.uploader.listDirectory(path).catch((err) => {
             stdout.write("Error: " + err + "\n");
             process.exit(1);
@@ -21,6 +26,11 @@ let cmd = new Command("List files in a directory", {
         for (let file of listing) {
             stdout.write("  " + file + "\n");
         }
+
+        await device.controller.unlock().catch((err) => {
+            stdout.write("Error unlocking device: " + err);
+            process.exit(1);
+        });
     },
     args: [
         new Arg("path", "Directory to list", { required: true }),

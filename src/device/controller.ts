@@ -6,8 +6,12 @@ export enum ControllerCommand {
     START = 0x01,
     STOP = 0x02,
     STATUS = 0x03,
+    LOCK = 0x10,
+    UNLOCK = 0x11,
+    FORCE_UNLOCK = 0x12,
     OK = 0x20,
     ERROR = 0x21,
+    LOCK_NOT_OWNED = 0x22,
 };
 
 
@@ -96,6 +100,60 @@ export class Controller {
 
             let packet = this._out.buildPacket();
             packet.put(ControllerCommand.STATUS);
+            packet.send();
+        });
+    }
+
+    public lock(): Promise<void> {
+        logger.verbose("Locking controller");
+        return new Promise((resolve, reject) => {
+            this._onPacket = (cmd: ControllerCommand, data: Buffer) => {
+                if (cmd == ControllerCommand.OK) {
+                    resolve();
+                } else {
+                    reject(cmd);
+                }
+                return true;
+            };
+
+            let packet = this._out.buildPacket();
+            packet.put(ControllerCommand.LOCK);
+            packet.send();
+        });
+    }
+
+    public unlock(): Promise<void> {
+        logger.verbose("Unlocking controller");
+        return new Promise((resolve, reject) => {
+            this._onPacket = (cmd: ControllerCommand, data: Buffer) => {
+                if (cmd == ControllerCommand.OK) {
+                    resolve();
+                } else {
+                    reject(cmd);
+                }
+                return true;
+            };
+
+            let packet = this._out.buildPacket();
+            packet.put(ControllerCommand.UNLOCK);
+            packet.send();
+        });
+    }
+
+    public forceUnlock(): Promise<void> {
+        logger.verbose("Force unlocking controller");
+        return new Promise((resolve, reject) => {
+            this._onPacket = (cmd: ControllerCommand, data: Buffer) => {
+                if (cmd == ControllerCommand.OK) {
+                    resolve();
+                } else {
+                    reject(cmd);
+                }
+                return true;
+            };
+
+            let packet = this._out.buildPacket();
+            packet.put(ControllerCommand.FORCE_UNLOCK);
             packet.send();
         });
     }

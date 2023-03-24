@@ -7,7 +7,7 @@ import { stdout } from "process";
 
 let jac = new Program("jac", "Tools for controlling devices running Jaculus", {
     globalOptions: {
-        "verbose": new Opt("Enable verbose logging", { isFlag: true }),
+        "log-level": new Opt("Set log level", { defaultValue: "info" }),
         "help": new Opt("Print this help message", { isFlag: true }),
         "port": new Opt("Serial port to use (default: first available)"),
         "baudrate": new Opt("Baudrate to use", { defaultValue: "921600" }),
@@ -18,9 +18,8 @@ let jac = new Program("jac", "Tools for controlling devices running Jaculus", {
             stdout.write(jac.help() + "\n");
             process.exit(0);
         }
-        if (options["verbose"]) {
-            logger.level = "debug";
-        }
+
+        logger.level = options["log-level"] as string;
     }
 });
 
@@ -98,8 +97,10 @@ jac.run(args).then(() => {
 ).catch((e) => {
     if (e instanceof Error) {
         console.log(e.message);
+        process.exit(0);
     }
     else {
         console.log(e);
+        process.exit(0);
     }
 });

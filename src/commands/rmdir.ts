@@ -12,8 +12,18 @@ let cmd = new Command("Delete a directory on device", {
 
         let device = await getDevice(port, baudrate, socket, env);
 
+        await device.controller.lock().catch((err) => {
+            stdout.write("Error locking device: " + err);
+            process.exit(1);
+        });
+
         let cmd = await device.uploader.deleteDirectory(path).catch((err) => {
             stdout.write("Error: " + err + "\n");
+            process.exit(1);
+        });
+
+        await device.controller.unlock().catch((err) => {
+            stdout.write("Error unlocking device: " + err);
             process.exit(1);
         });
 

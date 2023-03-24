@@ -50,6 +50,7 @@ export class JacDevice {
     }
 
     public destroy(): Promise<void> {
+        this.controller.unlock();
         return this._mux.destroy();
     }
 }

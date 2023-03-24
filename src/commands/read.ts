@@ -12,8 +12,18 @@ let cmd = new Command("Read a file from device", {
 
         let device = await getDevice(port, baudrate, socket, env);
 
+        await device.controller.lock().catch((err) => {
+            stdout.write("Error locking device: " + err);
+            process.exit(1);
+        });
+
         let data = await device.uploader.readFile(path).catch((err) => {
             stdout.write("Error: " + err + "\n");
+            process.exit(1);
+        });
+
+        await device.controller.unlock().catch((err) => {
+            stdout.write("Error unlocking device: " + err);
             process.exit(1);
         });
 

@@ -12,8 +12,18 @@ let cmd = new Command("Start a program", {
 
         let device = await getDevice(port, baudrate, socket, env);
 
+        await device.controller.lock().catch((err) => {
+            stdout.write("Error locking device: " + err);
+            process.exit(1);
+        });
+
         let cmd = await device.controller.start(path).catch((err) => {
             stdout.write("Error: " + err + "\n");
+            process.exit(1);
+        });
+
+        await device.controller.unlock().catch((err) => {
+            stdout.write("Error unlocking device: " + err);
             process.exit(1);
         });
 

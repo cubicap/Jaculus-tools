@@ -18,6 +18,7 @@ export enum UploaderCommand {
     ERROR = 0x21,
     NOT_FOUND = 0x22,
     CONTINUE = 0x23,
+    LOCK_NOT_OWNED = 0x24,
 };
 
 export class Uploader {
@@ -89,19 +90,26 @@ export class Uploader {
                     return success;
                 }
                 return true;
+            case UploaderCommand.CONTINUE:
+                if (this._onContinue) {
+                    this._onContinue();
+                }
+                return true;
             case UploaderCommand.ERROR:
             case UploaderCommand.NOT_FOUND:
+            case UploaderCommand.LOCK_NOT_OWNED:
                 if (this._onError) {
                     let success = this._onError(cmd);
                     this._onError = undefined;
                     return success;
                 }
                 return true;
-            case UploaderCommand.CONTINUE:
-                if (this._onContinue) {
-                    this._onContinue();
-                }
             default:
+                if (this._onError) {
+                    let success = this._onError(cmd);
+                    this._onError = undefined;
+                    return success;
+                }
                 return false;
         }
     }
