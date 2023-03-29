@@ -13,8 +13,18 @@ let cmd = new Command("Upload a file/directory to device", {
 
         let device = await getDevice(port, baudrate, socket, env);
 
+        await device.controller.lock().catch((err) => {
+            stdout.write("Error locking device: " + err);
+            process.exit(1);
+        });
+
         let cmd = await device.uploader.upload(local, remote).catch((err) => {
             stdout.write("Error: " + err + "\n");
+            process.exit(1);
+        });
+
+        await device.controller.unlock().catch((err) => {
+            stdout.write("Error unlocking device: " + err);
             process.exit(1);
         });
 
