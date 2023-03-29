@@ -1,6 +1,7 @@
 import { Command, Env } from "./lib/command.js";
 import { stdout } from "process";
 import { getDevice } from "./util.js";
+import chalk from "chalk";
 
 
 let cmd = new Command("Monitor program output", {
@@ -13,6 +14,9 @@ let cmd = new Command("Monitor program output", {
 
         device.programOutput.onData((data) => {
             stdout.write(data);
+        });
+        device.programError.onData((data) => {
+            stdout.write(chalk.red(data));
         });
 
         return new Promise((resolve, reject) => {});

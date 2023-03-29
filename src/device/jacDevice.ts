@@ -14,6 +14,7 @@ export class JacDevice {
 
     public programOutput: UnboundedBufferedInputStreamCommunicator;
     public programInput: TransparentOutputStreamCommunicator;
+    public programError: UnboundedBufferedInputStreamCommunicator;
 
     public logOutput: UnboundedBufferedInputStreamCommunicator;
     public debugOutput: UnboundedBufferedInputStreamCommunicator;
@@ -24,8 +25,9 @@ export class JacDevice {
     public constructor(connection: Duplex) {
         this._mux = new Mux(CobsPacketizer, CobsSerializer, connection);
 
-        this.programOutput = new UnboundedBufferedInputStreamCommunicator(this._mux, 2);
-        this.programInput = new TransparentOutputStreamCommunicator(this._mux, 2);
+        this.programOutput = new UnboundedBufferedInputStreamCommunicator(this._mux, 16);
+        this.programInput = new TransparentOutputStreamCommunicator(this._mux, 16);
+        this.programError = new UnboundedBufferedInputStreamCommunicator(this._mux, 17);
 
         this.logOutput = new UnboundedBufferedInputStreamCommunicator(this._mux, 255);
         this.debugOutput = new UnboundedBufferedInputStreamCommunicator(this._mux, 254);
