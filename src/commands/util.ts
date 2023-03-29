@@ -100,6 +100,11 @@ export async function getDevice(port: string | undefined, baudrate: string | und
 
     env.device = { value: device, onEnd: async (device: JacDevice) => { await device.destroy(); } };
 
+    device.onEnd(() => {
+        logger.error("Device disconnected");
+        process.exit(1);
+    });
+
     return device;
 }
 

@@ -18,12 +18,19 @@ export class SocketStream implements Duplex {
         this.socket = new net.Socket()
         this.socket.setTimeout(1000)
 
+        let openErrCbk = (err: any) => {
+            if (openCallbacks["error"]) {
+                openCallbacks["error"](err)
+            }
+        }
+
         this.socket.on("ready", () => {
             if (openCallbacks["open"]) {
                 openCallbacks["open"]()
             }
 
             // change error handler to a normal one
+            this.socket.off("error", openErrCbk)
             this.socket.on("error", (err: any) => {
                 if (this.callbacks["error"]) {
                     this.callbacks["error"](err)
@@ -32,11 +39,7 @@ export class SocketStream implements Duplex {
         })
 
         // consider all errors open errors before the socket is ready
-        this.socket.on("error", (err: any) => {
-            if (openCallbacks["error"]) {
-                openCallbacks["error"](err)
-            }
-        })
+        this.socket.on("error", openErrCbk)
 
         this.socket.on("data", (data: Buffer) => {
             if (this.callbacks["data"]) {
