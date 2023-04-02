@@ -262,8 +262,8 @@ async function installUpstream(port: string, platform: string, idf: string, upst
 }
 
 async function installJaculusBinary(port: string, platform: string): Promise<void> {
-    // esptool.py --port COM3 write_flash 0xC0000 .\jaculus.bin
-    throw new Error("Not implemented");
+    // chage default values of upstream and idf
+    throw new Error("Binary distribution is not implemented");
 }
 
 /*
@@ -295,8 +295,8 @@ let cmd = new Command("Install Jaculus to device", {
     },
     options: {
         "platform": new Opt("Target platform for [" + platforms.join(", ") + "]"),
-        "upstream": new Opt("Install Jaculus from upstream (requires idf to be set), [yes, force]"),
-        "idf": new Opt("Path to ESP-IDF 5.0 [<path>, download, force-download, force-init]")
+        "upstream": new Opt("Install Jaculus from upstream (requires idf to be set), [no, yes, force]", { defaultValue: "yes" }),
+        "idf": new Opt("Path to ESP-IDF 5.0 [<path>, download, force-dl, force-init]", { defaultValue: "download" }),
     },
     description: "Requires Python, git and device driver to be installed.\nIf --idf=download, it will be automatically downloaded and setup.\n"
 });
