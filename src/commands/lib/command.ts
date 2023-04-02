@@ -57,7 +57,7 @@ function parseArgs(
     const argsList: string[] = [];
 
     for (let i = 0; i < argv.length; i++) {
-        const optName = getOptName(argv[i]);
+        let optName = getOptName(argv[i]);
 
         if (optName === null) {
             if (argsList.length < expArgs.length) {
@@ -69,14 +69,30 @@ function parseArgs(
             continue;
         }
 
-        if (optName in expOpts) {
+        let value: string | undefined = undefined;
 
+        if (optName.includes("=")) {
+            const [n, v] = optName.split("=", 2);
+            optName = n;
+            value = v;
+        }
+
+        if (optName in expOpts) {
             if (optName in options) {
                 throw new Error(`Option --${optName} was specified multiple times`);
             }
 
             if (expOpts[optName].isFlag) {
+                if (value !== undefined) {
+                    throw new Error(`Option --${optName} is a flag and does not accept a value`);
+                }
+
                 options[optName] = true;
+                continue;
+            }
+
+            if (value !== undefined) {
+                options[optName] = value;
                 continue;
             }
 
