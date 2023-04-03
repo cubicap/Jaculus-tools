@@ -11,8 +11,6 @@ let cmd = new Command("Write a file to device", {
         let socket = options["socket"] as string;
         let path = args["path"] as string;
 
-        let device = await getDevice(port, baudrate, socket, env);
-
         let str = ""
         await new Promise((resolve, reject) => {
             let rl = readline.createInterface({
@@ -20,6 +18,7 @@ let cmd = new Command("Write a file to device", {
                 output: process.stdout
             });
 
+            rl.setPrompt("");
             rl.on("line", (line: string) => {
                 if (line == "\\") {
                     rl.close();
@@ -28,7 +27,16 @@ let cmd = new Command("Write a file to device", {
                 }
                 str += line + "\n";
             });
+            rl.on("close", () => {
+                reject("Write cancelled");
+            });
+        })
+        .catch((err) => {
+            stdout.write("Error: " + err + "\n");
+            process.exit(1);
         });
+
+        let device = await getDevice(port, baudrate, socket, env);
 
         await device.controller.lock().catch((err) => {
             stdout.write("Error locking device: " + err);
