@@ -16,6 +16,7 @@ export class JacDevice {
     public programInput: TransparentOutputStreamCommunicator;
     public programError: UnboundedBufferedInputStreamCommunicator;
 
+    public errorOutput: UnboundedBufferedInputStreamCommunicator;
     public logOutput: UnboundedBufferedInputStreamCommunicator;
     public debugOutput: UnboundedBufferedInputStreamCommunicator;
 
@@ -29,8 +30,9 @@ export class JacDevice {
         this.programInput = new TransparentOutputStreamCommunicator(this._mux, 16);
         this.programError = new UnboundedBufferedInputStreamCommunicator(this._mux, 17);
 
-        this.logOutput = new UnboundedBufferedInputStreamCommunicator(this._mux, 255);
-        this.debugOutput = new UnboundedBufferedInputStreamCommunicator(this._mux, 254);
+        this.errorOutput = new UnboundedBufferedInputStreamCommunicator(this._mux, 255);
+        this.logOutput = new UnboundedBufferedInputStreamCommunicator(this._mux, 253);
+        this.debugOutput = new UnboundedBufferedInputStreamCommunicator(this._mux, 251);
 
         this.controller = new Controller(
             new UnboundedBufferedInputPacketCommunicator(this._mux, 0),

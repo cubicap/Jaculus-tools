@@ -90,6 +90,10 @@ export async function getDevice(port: string | undefined, baudrate: string | und
         throw new Error("Invalid port/socket");
     }
 
+    device.errorOutput.onData((data) => {
+        logger.error("Device: " + data.toString());
+    });
+
     device.logOutput.onData((data) => {
         logger.info("Device: " + data.toString());
     });
