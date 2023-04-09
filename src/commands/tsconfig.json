@@ -18,6 +18,7 @@
         "status.ts",
         "build.ts",
         "install.ts",
+        "pull.ts",
         "index.ts",
         "lib/command.ts",
     ],

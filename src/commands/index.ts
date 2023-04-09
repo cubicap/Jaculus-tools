@@ -48,7 +48,7 @@ jac.addCommand("help", new Command("Print help for given command", {
 import listPorts from "./list-ports.js";
 import serialSocket from "./serial-socket.js";
 import install from "./install.js";
-import compile from "./build.js";
+import build from "./build.js";
 import flash from "./flash.js";
 import ls from "./ls.js";
 import read from "./read.js";
@@ -61,13 +61,15 @@ import start from "./start.js";
 import stop from "./stop.js";
 import status from "./status.js";
 import monitor from "./monitor.js";
+import pull from "./pull.js";
 
 jac.addCommand("list-ports", listPorts);
 jac.addCommand("serial-socket", serialSocket);
 jac.addCommand("install", install);
-jac.addCommand("build", compile);
+jac.addCommand("build", build);
 jac.addCommand("flash", flash);
 
+jac.addCommand("pull", pull)
 jac.addCommand("ls", ls);
 jac.addCommand("read", read);
 jac.addCommand("write", write);

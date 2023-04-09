@@ -226,8 +226,8 @@ export class Uploader {
         });
     }
 
-    public listDirectory(path_: string): Promise<[string, boolean][]> {
-        logger.verbose("Listing directory: " + path_);
+    public listDirectory(path_: string, flags: string = ""): Promise<[string, boolean, number][]> {
+        logger.verbose("Listing directory: " + path_ + " - '" + flags + "'");
         return new Promise((resolve, reject) => {
             let data: Buffer = Buffer.alloc(0);
             this._onData = (d: Buffer) => {
@@ -238,13 +238,29 @@ export class Uploader {
                 return true;
             };
             this._onDataComplete = () => {
-                let files = data.toString("utf8").split("\0");
-                files.pop();
-                let result: [string, boolean][] = [];
-                for (let f of files) {
-                    let type = f.charAt(0);
-                    let name = f.slice(1);
-                    result.push([name, type == "d"]);
+                let buffer = Buffer.alloc(270);
+                let bufferIn = 0;
+                let result: [string, boolean, number][] = [];
+                for (let i = 0; i < data.length; i++) {
+                    let b = data[i];
+                    if (b == 0) {
+                        let name = buffer.toString("utf8", 0, buffer.indexOf(0));
+                        let isDir = name.charAt(0) == "d";
+                        name = name.slice(1);
+                        let size = 0;
+                        for (let off = 0; off < 4; off++) {
+                            logger.debug("size: " + size + " + " + data[i + off + 1]);
+                            size <<= 8;
+                            size |= data[i + off + 1];
+                        }
+                        i += 4;
+                        result.push([name, isDir, size]);
+                        buffer.fill(0);
+                        bufferIn = 0;
+                    }
+                    else {
+                        buffer[bufferIn++] = b;
+                    }
                 }
                 resolve(result);
                 return true;
@@ -255,8 +271,11 @@ export class Uploader {
             };
             let packet = this._out.buildPacket();
             packet.put(UploaderCommand.LIST_DIR);
-            for (let b of this.encodePath(path_, false)) {
+            for (let b of this.encodePath(path_, true)) {
                 packet.put(b);
+            }
+            for (let b of flags) {
+                packet.put(b.charCodeAt(0));
             }
             packet.send();
         });
@@ -338,21 +357,76 @@ export class Uploader {
 
     public async push(from: string, to: string): Promise<UploaderCommand> {
         logger.verbose("Pushing " + from + " to " + to);
-        try {
-            if (!fs.lstatSync(from).isDirectory()) {
-                throw "Source must be a directory";
-            }
+        if (!fs.lstatSync(from).isDirectory()) {
+            throw "Source must be a directory";
+        }
 
-            let files = fs.readdirSync(from);
-            for (let file of files) {
-                await this.upload(path.join(from, file), to + "/" + file).catch((err) => {
+        let files = fs.readdirSync(from);
+        for (let file of files) {
+            await this.upload(path.join(from, file), to + "/" + file).catch((err) => {
+                throw err;
+            });
+        }
+        return UploaderCommand.OK;
+    }
+
+    private async pullFile(from: string, to: string): Promise<UploaderCommand> {
+        logger.info("Pulling " + from + " to " + to);
+
+        let data = await this.readFile(from).catch((cmd: UploaderCommand) => {
+            throw "Failed to read file (" + cmd + ")";
+        });
+
+        fs.writeFileSync(to, data);
+
+        return UploaderCommand.OK;
+    }
+
+    private async pullDir(from: string, to: string): Promise<UploaderCommand> {
+        logger.info("Pulling " + from + " to " + to);
+
+        let files = await this.listDirectory(from).catch((cmd: UploaderCommand) => {
+            throw "Failed to list directory (" + cmd + ")";
+        });
+
+        if (!fs.existsSync(to)) {
+            fs.mkdirSync(to);
+        }
+        if (!fs.lstatSync(to).isDirectory()) {
+            throw "Destination must be a directory";
+        }
+        if (fs.readdirSync(to).length > 0) {
+            throw "Destination directory is not empty";
+        }
+
+        for (let file of files) {
+            let name = file[0];
+            let isDir = file[1];
+            if (isDir) {
+                await this.pullDir(from + "/" + name, to + "/" + name).catch((err) => {
                     throw err;
                 });
             }
-            return UploaderCommand.OK;
+            else {
+                await this.pullFile(from + "/" + name, to + "/" + name).catch((err) => {
+                    throw err;
+                });
+            }
         }
-        catch (e) {
-            throw e;
+        return UploaderCommand.OK;
+    }
+
+    public async pull(from: string, to: string): Promise<UploaderCommand> {
+        logger.verbose("Pulling " + from + " to " + to);
+
+        let [_, isDir, __] = await this.listDirectory(from).catch((cmd: UploaderCommand) => {
+            throw "Failed to get file type (" + cmd + ")";
+        });
+
+        if (isDir) {
+            return this.pullDir(from, to);
         }
+
+        return this.pullFile(from, to);
     }
 }
