@@ -1,6 +1,7 @@
 import { Arg, Command, Env } from "./lib/command.js";
 import { stdout } from "process";
 import { getDevice } from "./util.js";
+import chalk from "chalk";
 
 
 let cmd = new Command("List files in a directory", {
@@ -23,8 +24,8 @@ let cmd = new Command("List files in a directory", {
         });
 
         stdout.write("Listing of " + path + ":\n");
-        for (let file of listing) {
-            stdout.write("  " + file + "\n");
+        for (let [name, isDir] of listing) {
+            stdout.write("  " + (isDir ? chalk.blueBright(name) : name) + "\n");
         }
 
         await device.controller.unlock().catch((err) => {

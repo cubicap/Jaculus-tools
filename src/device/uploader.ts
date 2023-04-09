@@ -226,7 +226,7 @@ export class Uploader {
         });
     }
 
-    public listDirectory(path_: string): Promise<string[]> {
+    public listDirectory(path_: string): Promise<[string, boolean][]> {
         logger.verbose("Listing directory: " + path_);
         return new Promise((resolve, reject) => {
             let data: Buffer = Buffer.alloc(0);
@@ -240,7 +240,13 @@ export class Uploader {
             this._onDataComplete = () => {
                 let files = data.toString("utf8").split("\0");
                 files.pop();
-                resolve(files);
+                let result: [string, boolean][] = [];
+                for (let f of files) {
+                    let type = f.charAt(0);
+                    let name = f.slice(1);
+                    result.push([name, type == "d"]);
+                }
+                resolve(result);
                 return true;
             };
             this._onError = (cmd: UploaderCommand) => {
