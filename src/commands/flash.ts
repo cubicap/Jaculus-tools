@@ -4,7 +4,7 @@ import { getDevice, withDevice } from "./util.js";
 import { logger } from "../util/logger.js";
 
 
-let cmd = new Command("Flash a directory to device (replace contents of /data)", {
+let cmd = new Command("Flash code to device (replace contents of ./code)", {
     action: async (options: Record<string, string | boolean>, args: Record<string, string>, env: Env) => {
         let port = options["port"] as string;
         let baudrate = options["baudrate"] as string;
@@ -22,15 +22,17 @@ let cmd = new Command("Flash a directory to device (replace contents of /data)",
             logger.verbose("Error stopping device: " + err);
         });
 
-        await device.uploader.deleteDirectory("/data");
+        await device.uploader.deleteDirectory("code").catch((err) => {
+            logger.verbose("Error deleting directory: " + err);
+        });
 
-        let cmd = await device.uploader.push(from, "/data").catch((err) => {
+        let cmd = await device.uploader.upload(from, "code").catch((err) => {
             stdout.write("Error uploading: " + err + "\n");
             process.exit(1);
         });
         stdout.write(cmd.toString() + "\n");
 
-        await device.controller.start("/data/index.js").catch((err) => {
+        await device.controller.start("index.js").catch((err) => {
             stdout.write("Error starting program: " + err + "\n");
             process.exit(1);
         });
