@@ -7,10 +7,10 @@ export const logger = winston.createLogger({
         new winston.transports.Console( { format: winston.format.combine(
             winston.format.cli()
         )}),
-        new winston.transports.File( { format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.json()
-        ), filename: "jac.log", level: "verbose" } )
+        // new winston.transports.File( { format: winston.format.combine(
+        //     winston.format.timestamp(),
+        //     winston.format.json()
+        // ), filename: "jac.log", level: "verbose" } )
     ]
 });
 
