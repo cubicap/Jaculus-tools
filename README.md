@@ -5,9 +5,9 @@ running Jaculus machine.
 
 ## Setup
 
-First, install node.js and npm. Then, install the tools with:
+First, install node.js and npm. Then, install jaculus-tools with:
 
-    $ npm install -g https://github.com/cubicap/Jaculus-tools/archive/refs/heads/npm-publish.tar.gz
+    $ npm install -g jaculus-tools
 
 Then, you can run the tools using:
 
@@ -69,7 +69,7 @@ Create a new TypeScript project, from the template provided in the `resources` d
 
 Compile the project to JavaScript:
 
-    $ jac compile
+    $ jac build
 
 The output will be written to the `build` directory.
 

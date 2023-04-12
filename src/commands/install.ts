@@ -38,9 +38,12 @@ function downloadAndExtract(url: string, target: string): Promise<void> {
                 .catch(reject);
                 return;
             }
+            if (res.statusCode != 200) {
+                reject("HTTP error " + res.statusCode);
+                return;
+            }
 
             let totalSize = res.headers["content-length"] ? parseInt(res.headers["content-length"]) : undefined;
-
 
             let bar: cliProgress.SingleBar | undefined;
 
@@ -118,8 +121,8 @@ async function installUpstream(port: string, platform: string, idf: string, upst
     const idfPath = getIdfPath(idfVersion, idf);
     const idfUrl = "https://github.com/espressif/esp-idf/releases/download/v5.0.1/" + idfVersion + ".zip";
 
-    const jacDir = "Jaculus-master";
-    const jacUrl = "https://github.com/cubicap/Jaculus/archive/refs/heads/master.zip";
+    const jacDir = "Jaculus-esp32-master";
+    const jacUrl = "https://github.com/cubicap/Jaculus-esp32/archive/refs/heads/master.zip";
 
     if (!port) {
         stderr.write(chalk.red("No port specified\n"));
@@ -208,7 +211,7 @@ async function installUpstream(port: string, platform: string, idf: string, upst
 
         await downloadAndExtract(jacUrl, getJaculusDataDir())
         .catch((err) => {
-            // TODO: remove downloaded file
+            // TODO: remove downloaded files
             stderr.write(chalk.red("Error downloading Jaculus: " + err + "\n"));
             process.exit(1);
         });
@@ -266,15 +269,6 @@ async function installJaculusBinary(port: string, platform: string): Promise<voi
     throw new Error("Binary distribution is not implemented");
 }
 
-/*
-FIXME: linux
-install in user directory (https://github.com/sindresorhus/guides/blob/main/npm-global-without-sudo.md)
-Change permissions of setup.sh, export.sh and idf.py
-Run `. export.sh`
-Requires cmake, python3.10-venv, git to be installed
-Permissions for serial-usb converter
-Check the error message of try the following...
-*/
 
 let cmd = new Command("Install Jaculus to device", {
     action: async (options: Record<string, string | boolean>, args: Record<string, string>) => {
