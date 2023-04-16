@@ -4,8 +4,8 @@ on:
   push:
     branches: [ master ]
 
-  pull_request:
-    branches: [ master ]
+permissions:
+  contents: write
 
 env:
   node-version: 18.x
