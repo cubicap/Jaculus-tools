@@ -1,4 +1,4 @@
-import { Arg, Command, Env } from "./lib/command.js";
+import { Command, Env, Opt } from "./lib/command.js";
 import { stdout } from "process";
 import { getDevice } from "./util.js";
 
@@ -8,7 +8,7 @@ let cmd = new Command("Start a program", {
         let port = options["port"] as string;
         let baudrate = options["baudrate"] as string;
         let socket = options["socket"] as string;
-        let path = args["path"] as string;
+        let entry = options["entry"] as string;
 
         let device = await getDevice(port, baudrate, socket, env);
 
@@ -17,7 +17,7 @@ let cmd = new Command("Start a program", {
             process.exit(1);
         });
 
-        let cmd = await device.controller.start(path).catch((err) => {
+        let cmd = await device.controller.start(entry).catch((err) => {
             stdout.write("Error: " + err + "\n");
             process.exit(1);
         });
@@ -29,9 +29,9 @@ let cmd = new Command("Start a program", {
 
         stdout.write(cmd.toString() + "\n");
     },
-    args: [
-        new Arg("path", "Remote file to run", { required: true }),
-    ],
+    options: {
+        "entry": new Opt("Remote file to run", { defaultValue: "./code/index.js", required: true }),
+    },
     chainable: true
 });
 
