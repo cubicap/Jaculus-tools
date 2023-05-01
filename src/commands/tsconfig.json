@@ -16,6 +16,7 @@
         "start.ts",
         "stop.ts",
         "status.ts",
+        "version.ts",
         "build.ts",
         "install.ts",
         "pull.ts",

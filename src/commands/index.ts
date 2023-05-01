@@ -60,6 +60,7 @@ import upload from "./upload.js";
 import start from "./start.js";
 import stop from "./stop.js";
 import status from "./status.js";
+import version from "./version.js";
 import monitor from "./monitor.js";
 import pull from "./pull.js";
 
@@ -78,10 +79,10 @@ jac.addCommand("mkdir", mkdir);
 jac.addCommand("rmdir", rmdir);
 jac.addCommand("upload", upload);
 
-
 jac.addCommand("start", start);
 jac.addCommand("stop", stop);
 jac.addCommand("status", status);
+jac.addCommand("version", version);
 
 jac.addCommand("monitor", monitor);
 

@@ -6,6 +6,7 @@ export enum ControllerCommand {
     START = 0x01,
     STOP = 0x02,
     STATUS = 0x03,
+    VERSION = 0x04,
     LOCK = 0x10,
     UNLOCK = 0x11,
     FORCE_UNLOCK = 0x12,
@@ -100,6 +101,32 @@ export class Controller {
 
             let packet = this._out.buildPacket();
             packet.put(ControllerCommand.STATUS);
+            packet.send();
+        });
+    }
+
+    public version(): Promise<string[]> {
+        logger.verbose("Getting version");
+        return new Promise((resolve, reject) => {
+            this._onPacket = (cmd: ControllerCommand, data: Buffer) => {
+                if (cmd == ControllerCommand.VERSION && data.length > 0) {
+                    let res = [];
+                    for (let row of data.toString("utf8").split("\n")) {
+                        row = row.trim();
+                        if (row.length > 0) {
+                            res.push(row);
+                        }
+                    }
+
+                    resolve(res);
+                } else {
+                    reject(cmd);
+                }
+                return true;
+            };
+
+            let packet = this._out.buildPacket();
+            packet.put(ControllerCommand.VERSION);
             packet.send();
         });
     }
