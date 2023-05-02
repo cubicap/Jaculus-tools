@@ -30,7 +30,7 @@ let cmd = new Command("Start a program", {
         stdout.write(cmd.toString() + "\n");
     },
     options: {
-        "entry": new Opt("Remote file to run", { defaultValue: "./code/index.js", required: true }),
+        "entry": new Opt("Remote file to run", { defaultValue: "index.js", required: true }),
     },
     chainable: true
 });
