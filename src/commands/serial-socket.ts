@@ -22,17 +22,28 @@ let cmd = new Command("Tunnel a serial port over a TCP socket", {
 
         let port = new SerialPort({
             path: portPath,
-            baudRate: parseInt(baudrate)
-        }, (err) => {
+            baudRate: parseInt(baudrate),
+            autoOpen: false
+        });
+
+        port.open((err) => {
             if (err) {
                 stdout.write("Port open error: " + err.message + "\n");
                 process.exit(1);
             }
 
             port.set({
-                rts: true,
-                dtr: true
+                rts: false,
+                dtr: false
             })
+
+            setTimeout(() => {
+                port.set({
+                    rts: true,
+                    dtr: true
+                })},
+                10
+            )
         });
 
         port.on("error", (err) => {

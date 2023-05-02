@@ -32,13 +32,19 @@ export class SerialStream implements Duplex {
                 }
 
                 this.port.set({
-                    rts: true,
-                    dtr: true
+                    rts: false,
+                    dtr: false
                 })
 
-                if (openCallbacks["open"]) {
-                    openCallbacks["open"]()
-                }
+                setTimeout(() => {
+                    this.port.set({
+                        rts: true,
+                        dtr: true
+                    });
+                    if (openCallbacks["open"]) {
+                        openCallbacks["open"]()
+                    }
+                }, 10)
             }
         )
         this.port.on("data", (data) => {
