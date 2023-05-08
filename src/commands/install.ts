@@ -113,7 +113,7 @@ function getIdfPath(def: string, path_?: string): string {
 async function installUpstream(port: string, platform: string, idf: string, upstream: string): Promise<void> {
     if (!idf) {
         stderr.write(chalk.red("No IDF path specified\n"));
-        process.exit(1);
+        throw 1;
     }
 
     const idfVersion = "esp-idf-v5.0.1";
@@ -126,15 +126,15 @@ async function installUpstream(port: string, platform: string, idf: string, upst
 
     if (!port) {
         stderr.write(chalk.red("No port specified\n"));
-        process.exit(1);
+        throw 1;
     }
     if (!platform) {
         stderr.write(chalk.red("No platform specified\n"));
-        process.exit(1);
+        throw 1;
     }
     if (!platforms.includes(platform)) {
         stderr.write(chalk.red("Invalid platform specified: " + platform + "\n"));
-        process.exit(1);
+        throw 1;
     }
 
     if (idf == "force-download") {
@@ -153,7 +153,7 @@ async function installUpstream(port: string, platform: string, idf: string, upst
         .catch((err) => {
             // TODO: remove downloaded file
             stderr.write(chalk.red("Error downloading ESP-IDF: " + err + "\n"));
-            process.exit(1);
+            throw 1;
         });
 
         stdout.write("ESP-IDF downloaded");
@@ -189,14 +189,14 @@ async function installUpstream(port: string, platform: string, idf: string, upst
             stderr.write(chalk.red("Error running ESP-IDF install script: " + err + "\n"));
             stderr.write(chalk.red("Please check ESP-IDF error message and try again with --idf=force-init\n"));
             stderr.write(chalk.red("If the problem persists, you can try redownloading ESP-IDF with --idf=force-download or running the install script manually\n"));
-            process.exit(1);
+            throw 1;
         }
     }
 
     if (!fs.existsSync(idfPath)) {
         stderr.write(chalk.red("ESP-IDF not found at " + idfPath + "\n"));
         stderr.write(chalk.red("Check that the path is correct or download ESP-IDF with --idf=download\n"));
-        process.exit(1);
+        throw 1;
     }
 
     // ----- DOWNLOAD JACULUS -----
@@ -213,7 +213,7 @@ async function installUpstream(port: string, platform: string, idf: string, upst
         .catch((err) => {
             // TODO: remove downloaded files
             stderr.write(chalk.red("Error downloading Jaculus: " + err + "\n"));
-            process.exit(1);
+            throw 1;
         });
     }
 
@@ -233,7 +233,7 @@ async function installUpstream(port: string, platform: string, idf: string, upst
     catch (err) {
         stderr.write(chalk.red("Error copying selected configuration: " + err + "\n"));
         stderr.write(chalk.red("Try running with --force-download to redownload Jaculus\n"));
-        process.exit(1);
+        throw 1;
     }
 
     // ----- BUILD AND FLASH JACULUS -----
@@ -260,13 +260,14 @@ async function installUpstream(port: string, platform: string, idf: string, upst
         stderr.write(chalk.red("Also check that the port is correct, the device is connected, device driver is installed and you have sufficient permissions\n"));
         stderr.write(chalk.red("You can reinitialize ESP-IDF with --idf=force-init or try redownloading it with --idf=force-download\n"));
         stderr.write(chalk.red("You can also try redownloading Jaculus with --force-download-jac to fix any build errors\n"));
-        process.exit(1);
+        throw 1;
     }
 }
 
 async function installJaculusBinary(port: string, platform: string): Promise<void> {
     // chage default values of upstream and idf
-    throw new Error("Binary distribution is not implemented");
+    stderr.write("Binary distribution is not implemented");
+    throw 1;
 }
 
 

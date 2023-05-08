@@ -16,7 +16,7 @@ let jac = new Program("jac", "Tools for controlling devices running Jaculus", {
     action: async (options: Record<string, string | boolean>) => {
         if (options["help"]) {
             stdout.write(jac.help() + "\n");
-            process.exit(0);
+            throw 0;
         }
 
         logger.level = options["log-level"] as string;
@@ -94,16 +94,23 @@ if (args.length === 0) {
 }
 
 jac.run(args).then(() => {
+    jac.end();
+
     console.log("Done");
     process.exit(0);
 }
 ).catch((e) => {
-    if (e instanceof Error) {
+    jac.end();
+
+    if (typeof e === "number") {
+        process.exit(e);
+    }
+    else if (e instanceof Error) {
         console.log(e.message);
-        process.exit(0);
+        process.exit(1);
     }
     else {
         console.log(e);
-        process.exit(0);
+        process.exit(1);
     }
 });

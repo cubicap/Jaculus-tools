@@ -14,7 +14,7 @@ let cmd = new Command("Get status of device", {
 
         let status = await device.controller.status().catch((err) => {
             stdout.write("Error: " + err + "\n");
-            process.exit(1);
+            throw 1;
         });
 
         stdout.write("Running: " + status.running + "\n");

@@ -13,7 +13,7 @@ let cmd = new Command("Get version of device firmware", {
 
         let status = await device.controller.version().catch((err) => {
             stdout.write("Error: " + err + "\n");
-            process.exit(1);
+            throw 1;
         });
 
         stdout.write("Firmware version:\n  " + status.join("\n  ") + "\n");

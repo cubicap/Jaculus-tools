@@ -28,29 +28,30 @@ let cmd = new Command("Write a file to device", {
                 str += line + "\n";
             });
             rl.on("close", () => {
-                reject("Write cancelled");
+                stdout.write("Write cancelled");
+                reject(null);
             });
         })
         .catch((err) => {
             stdout.write("Error: " + err + "\n");
-            process.exit(1);
+            throw 1;
         });
 
         let device = await getDevice(port, baudrate, socket, env);
 
         await device.controller.lock().catch((err) => {
             stdout.write("Error locking device: " + err);
-            process.exit(1);
+            throw 1;
         });
 
         let cmd = await device.uploader.writeFile(path, Buffer.from(str, "utf-8")).catch((err) => {
             stdout.write("Error: " + err + "\n");
-            process.exit(1);
+            throw 1;
         });
 
         await device.controller.unlock().catch((err) => {
             stdout.write("Error unlocking device: " + err);
-            process.exit(1);
+            throw 1;
         });
 
         stdout.write(cmd.toString() + "\n");

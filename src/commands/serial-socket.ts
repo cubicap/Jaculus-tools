@@ -11,89 +11,98 @@ let cmd = new Command("Tunnel a serial port over a TCP socket", {
         let socket = defaultSocket(options["socket"] as string | undefined);
         let portPath = await defaultPort(options["port"] as string | undefined);
 
-        if (socket.startsWith("localhost:")) {
-            socket = socket.slice("localhost:".length);
-        }
-
-        stdout.write("Tunneling " + portPath + " at " + baudrate + " bauds\n");
-
-
-        let sockets: Set<net.Socket> = new Set();
-
-        let port = new SerialPort({
-            path: portPath,
-            baudRate: parseInt(baudrate),
-            autoOpen: false
-        });
-
-        port.open((err) => {
-            if (err) {
-                stdout.write("Port open error: " + err.message + "\n");
-                process.exit(1);
+        return new Promise((resolve, reject) => {
+            if (socket.startsWith("localhost:")) {
+                socket = socket.slice("localhost:".length);
             }
 
-            port.set({
-                rts: false,
-                dtr: false
-            })
+            stdout.write("Tunneling " + portPath + " at " + baudrate + " bauds\n");
 
-            setTimeout(() => {
+
+            let sockets: Set<net.Socket> = new Set();
+
+            let port = new SerialPort({
+                path: portPath,
+                baudRate: parseInt(baudrate),
+                autoOpen: false
+            });
+
+            port.open((err) => {
+                if (err) {
+                    stdout.write("Port open error: " + err.message + "\n");
+                    reject(1);
+                }
+
                 port.set({
-                    rts: true,
-                    dtr: true
-                })},
-                10
-            )
-        });
+                    rts: false,
+                    dtr: false
+                })
 
-        port.on("error", (err) => {
-            stdout.write("Port error: " + err.message + "\n");
-            process.exit(1);
-        });
-
-        port.on("close", () => {
-            stdout.write("Port closed\n");
-            process.exit(0);
-        });
-
-        port.on("data", (data) => {
-            for (let socket of sockets) {
-                socket.write(data);
-            }
-            stdout.write("Port >> 『" + data + "』\n");
-        });
-
-
-        let server = net.createServer((socket) => {
-            sockets.add(socket);
-
-            socket.on("data", (data) => {
-                stdout.write("Sock >> 『" + data + "』\n");
-                port.write(data);
+                setTimeout(() => {
+                    port.set({
+                        rts: true,
+                        dtr: true
+                    })},
+                    10
+                )
             });
-            socket.on("close", () => {
-                sockets.delete(socket);
-                stdout.write("Socket closed\n");
+
+            port.on("error", (err) => {
+                stdout.write("Port error: " + err.message + "\n");
+                reject(1);
             });
-            socket.on("error", (err) => {
-                stdout.write("Socket error: " + err.message + "\n");
+
+            port.on("close", () => {
+                stdout.write("Port closed\n");
+                resolve();
+            });
+
+            port.on("data", (data) => {
+                for (let socket of sockets) {
+                    socket.write(data);
+                }
+                stdout.write("Port >> 『" + data + "』\n");
+            });
+
+
+            let server = net.createServer((socket) => {
+                sockets.add(socket);
+
+                socket.on("data", (data) => {
+                    stdout.write("Sock >> 『" + data + "』\n");
+                    port.write(data);
+                });
+                socket.on("close", () => {
+                    sockets.delete(socket);
+                    stdout.write("Socket closed\n");
+                });
+                socket.on("error", (err) => {
+                    stdout.write("Socket error: " + err.message + "\n");
+                });
+            });
+
+            server.on("close", () => {
+                stdout.write("Server closed\n");
+                port.close();
+            });
+
+            server.on("error", (err) => {
+                stdout.write("Server error: " + err.message + "\n");
+                reject(1);
+            });
+
+            server.listen(socket, () => {
+                stdout.write("Server listening on port " + socket + "\n");
+            });
+
+            process.on("SIGINT", () => {
+                stdout.write("Closing...\n");
+                for (let socket of sockets.values()) {
+                    socket.end();
+                }
+                server.close();
             });
         });
-
-        server.on("close", () => {
-            stdout.write("Server closed\n");
-        });
-
-        server.on("error", (err) => {
-            stdout.write("Server error: " + err.message + "\n");
-            process.exit(1);
-        });
-
-        server.listen(socket, () => {
-            stdout.write("Server listening on port " + socket + "\n");
-        });
-
-        return new Promise((resolve, reject) => {});
     }
 });
 

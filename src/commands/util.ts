@@ -9,10 +9,14 @@ import { Env } from "./lib/command.js";
 
 export async function defaultPort(value?: string): Promise<string> {
     if (!value) {
-        let ports = await SerialPort.list();
+        let ports = await SerialPort.list().catch((err) => {
+            stdout.write("Error listing serial ports: " + err);
+            throw 1;
+        });
+
         if (ports.length == 0) {
             stdout.write("No serial ports found\n");
-            process.exit(1);
+            throw 1;
         }
         return ports[0].path;
     }
@@ -36,7 +40,7 @@ export function defaultSocket(value?: string): string {
 export async function getPortSocket(port?: string | boolean, socket?: string | boolean): Promise<{ type: "port" | "socket", value: string }> {
     if (port && socket) {
         stdout.write("Must specify either a serial port or a socket, not both\n");
-        process.exit(1);
+        throw 1;
     }
 
     if (port) {
@@ -56,7 +60,8 @@ export function parseSocket(value: string): [string, number] {
         return ["localhost", parseInt(parts[0])];
     }
     else if (parts.length > 2) {
-        throw new Error("Invalid socket value");
+        stdout.write("Invalid socket value");
+        throw 1;
     }
 
     return [parts[0], parseInt(parts[1])];
@@ -79,7 +84,7 @@ export async function getDevice(port: string | undefined, baudrate: string | und
             stream = new SerialStream(where.value, rate,{
                 "error": (err) => {
                     stdout.write("Port error: " + err.message + "\n");
-                    process.exit(1);
+                    reject(1);
                 },
                 "open": () => {
                     resolve(null);
@@ -94,7 +99,7 @@ export async function getDevice(port: string | undefined, baudrate: string | und
         await new Promise((resolve, reject) => {
             stream = new SocketStream(host, port, { "error": (err) => {
                     stdout.write("Socket error: " + err.message + "\n");
-                    process.exit(1);
+                    reject(1);
                 },
                 "open": () => {
                     resolve(null);
@@ -104,7 +109,8 @@ export async function getDevice(port: string | undefined, baudrate: string | und
     }
 
     if (!stream) {
-        throw new Error("Invalid port/socket");
+        stdout.write("Invalid port/socket");
+        throw 1;
     }
 
     stdout.write("Connected.\n\n");

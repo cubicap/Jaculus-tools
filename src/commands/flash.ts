@@ -15,7 +15,7 @@ let cmd = new Command("Flash code to device (replace contents of ./code)", {
 
         await device.controller.lock().catch((err) => {
             stdout.write("Error locking device: " + err);
-            process.exit(1);
+            throw 1;
         });
 
         await device.controller.stop().catch((err) => {
@@ -28,18 +28,18 @@ let cmd = new Command("Flash code to device (replace contents of ./code)", {
 
         let cmd = await device.uploader.upload(from, "code").catch((err) => {
             stdout.write("Error uploading: " + err + "\n");
-            process.exit(1);
+            throw 1;
         });
         stdout.write(cmd.toString() + "\n");
 
         await device.controller.start("index.js").catch((err) => {
             stdout.write("Error starting program: " + err + "\n");
-            process.exit(1);
+            throw 1;
         });
 
         await device.controller.unlock().catch((err) => {
             stdout.write("Error unlocking device: " + err);
-            process.exit(1);
+            throw 1;
         });
     },
     options: {

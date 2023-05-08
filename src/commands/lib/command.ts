@@ -416,18 +416,6 @@ export class Program {
         }
     }
 
-    private end(message: string, error: boolean = false): string {
-        for (const [_, { value, onEnd }] of Object.entries(this.env)) {
-            onEnd(value);
-        }
-
-        if (error) {
-            throw new Error(message);
-        }
-
-        return message;
-    }
-
     public async run(argv: string[], globals: Record<string, string | boolean> = {}): Promise<void> {
         let { options, unknown } = parseArgs(argv, globals, this.globalOptions, []);
 
@@ -448,5 +436,11 @@ export class Program {
         }
 
         await this.runSingle(unknown, options);
+    }
+
+    public end(): void {
+        for (const [_, { value, onEnd }] of Object.entries(this.env)) {
+            onEnd(value);
+        }
     }
 }
