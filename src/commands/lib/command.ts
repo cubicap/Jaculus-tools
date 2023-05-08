@@ -432,16 +432,14 @@ export class Program {
         let { options, unknown } = parseArgs(argv, globals, this.globalOptions, []);
 
         if (unknown.length === 0) {
-            this.help();
-            return;
+            throw new Error('Command not specified');
         }
 
         const commandName = unknown[0];
         const command = this.commands[commandName];
 
         if (command === undefined) {
-            this.help();
-            return;
+            throw new Error(`Unknown command ${commandName}`);
         }
 
         if (command.chainable) {
