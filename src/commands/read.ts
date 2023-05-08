@@ -3,21 +3,21 @@ import { stdout } from "process";
 import { getDevice } from "./util.js";
 
 
-let cmd = new Command("Read a file from device", {
+const cmd = new Command("Read a file from device", {
     action: async (options: Record<string, string | boolean>, args: Record<string, string>, env: Env) => {
-        let port = options["port"] as string;
-        let baudrate = options["baudrate"] as string;
-        let socket = options["socket"] as string;
-        let path = args["path"] as string;
+        const port = options["port"] as string;
+        const baudrate = options["baudrate"] as string;
+        const socket = options["socket"] as string;
+        const path = args["path"] as string;
 
-        let device = await getDevice(port, baudrate, socket, env);
+        const device = await getDevice(port, baudrate, socket, env);
 
         await device.controller.lock().catch((err) => {
             stdout.write("Error locking device: " + err);
             throw 1;
         });
 
-        let data = await device.uploader.readFile(path).catch((err) => {
+        const data = await device.uploader.readFile(path).catch((err) => {
             stdout.write("Error: " + err + "\n");
             throw 1;
         });

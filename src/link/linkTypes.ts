@@ -6,6 +6,4 @@ export interface Packet {
     put(c: number): boolean;
     space(): number;
     send(): void;
-};
-
-export const EOF = -1
+}

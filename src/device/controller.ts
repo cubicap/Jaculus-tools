@@ -13,7 +13,7 @@ export enum ControllerCommand {
     OK = 0x20,
     ERROR = 0x21,
     LOCK_NOT_OWNED = 0x22,
-};
+}
 
 
 export class Controller {
@@ -31,12 +31,12 @@ export class Controller {
     }
 
     public processPacket(data_: Buffer): boolean {
-        let data = Buffer.from(data_);
+        const data = Buffer.from(data_);
         if (data.length < 1) {
             return false;
         }
 
-        let cmd: ControllerCommand = data[0];
+        const cmd: ControllerCommand = data[0];
 
         if (this._onPacket) {
             return this._onPacket(cmd, data.slice(1));
@@ -47,7 +47,7 @@ export class Controller {
     public start(path: string): Promise<ControllerCommand> {
         logger.verbose("Starting program: " + path);
         return new Promise((resolve, reject) => {
-            this._onPacket = (cmd: ControllerCommand, data: Buffer) => {
+            this._onPacket = (cmd: ControllerCommand) => {
                 if (cmd == ControllerCommand.OK) {
                     resolve(cmd);
                 } else {
@@ -56,9 +56,9 @@ export class Controller {
                 return true;
             };
 
-            let packet = this._out.buildPacket();
+            const packet = this._out.buildPacket();
             packet.put(ControllerCommand.START);
-            for (let c of path) {
+            for (const c of path) {
                 packet.put(c.charCodeAt(0));
             }
             packet.send();
@@ -68,7 +68,7 @@ export class Controller {
     public stop(): Promise<ControllerCommand> {
         logger.verbose("Stopping program");
         return new Promise((resolve, reject) => {
-            this._onPacket = (cmd: ControllerCommand, data: Buffer) => {
+            this._onPacket = (cmd: ControllerCommand) => {
                 if (cmd == ControllerCommand.OK) {
                     resolve(cmd);
                 } else {
@@ -77,7 +77,7 @@ export class Controller {
                 return true;
             };
 
-            let packet = this._out.buildPacket();
+            const packet = this._out.buildPacket();
             packet.put(ControllerCommand.STOP);
             packet.send();
         });
@@ -99,7 +99,7 @@ export class Controller {
                 return true;
             };
 
-            let packet = this._out.buildPacket();
+            const packet = this._out.buildPacket();
             packet.put(ControllerCommand.STATUS);
             packet.send();
         });
@@ -110,7 +110,7 @@ export class Controller {
         return new Promise((resolve, reject) => {
             this._onPacket = (cmd: ControllerCommand, data: Buffer) => {
                 if (cmd == ControllerCommand.VERSION && data.length > 0) {
-                    let res = [];
+                    const res = [];
                     for (let row of data.toString("utf8").split("\n")) {
                         row = row.trim();
                         if (row.length > 0) {
@@ -125,7 +125,7 @@ export class Controller {
                 return true;
             };
 
-            let packet = this._out.buildPacket();
+            const packet = this._out.buildPacket();
             packet.put(ControllerCommand.VERSION);
             packet.send();
         });
@@ -134,7 +134,7 @@ export class Controller {
     public lock(): Promise<void> {
         logger.verbose("Locking controller");
         return new Promise((resolve, reject) => {
-            this._onPacket = (cmd: ControllerCommand, data: Buffer) => {
+            this._onPacket = (cmd: ControllerCommand) => {
                 if (cmd == ControllerCommand.OK) {
                     resolve();
                 } else {
@@ -143,7 +143,7 @@ export class Controller {
                 return true;
             };
 
-            let packet = this._out.buildPacket();
+            const packet = this._out.buildPacket();
             packet.put(ControllerCommand.LOCK);
             packet.send();
         });
@@ -152,7 +152,7 @@ export class Controller {
     public unlock(): Promise<void> {
         logger.verbose("Unlocking controller");
         return new Promise((resolve, reject) => {
-            this._onPacket = (cmd: ControllerCommand, data: Buffer) => {
+            this._onPacket = (cmd: ControllerCommand) => {
                 if (cmd == ControllerCommand.OK) {
                     resolve();
                 } else {
@@ -161,7 +161,7 @@ export class Controller {
                 return true;
             };
 
-            let packet = this._out.buildPacket();
+            const packet = this._out.buildPacket();
             packet.put(ControllerCommand.UNLOCK);
             packet.send();
         });
@@ -170,7 +170,7 @@ export class Controller {
     public forceUnlock(): Promise<void> {
         logger.verbose("Force unlocking controller");
         return new Promise((resolve, reject) => {
-            this._onPacket = (cmd: ControllerCommand, data: Buffer) => {
+            this._onPacket = (cmd: ControllerCommand) => {
                 if (cmd == ControllerCommand.OK) {
                     resolve();
                 } else {
@@ -179,7 +179,7 @@ export class Controller {
                 return true;
             };
 
-            let packet = this._out.buildPacket();
+            const packet = this._out.buildPacket();
             packet.put(ControllerCommand.FORCE_UNLOCK);
             packet.send();
         });

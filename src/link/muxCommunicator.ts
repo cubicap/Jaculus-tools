@@ -1,4 +1,4 @@
-import { Packet, Consumer, EOF } from "./linkTypes.js";
+import { Packet, Consumer } from "./linkTypes.js";
 import { Mux } from "./mux.js";
 import { BufferedInputStreamCommunicator, BufferedInputPacketCommunicator, OutputStreamCommunicator, OutputPacketCommunicator } from "./communicator.js";
 
@@ -18,7 +18,7 @@ export class TransparentOutputStreamCommunicator implements OutputStreamCommunic
 
     public write(data: Buffer): void {
         let packet = this.mux.buildPacket(this.channel);
-        for (let c of data) {
+        for (const c of data) {
             if (packet.put(c)) {
                 packet.send();
                 packet = this.mux.buildPacket(this.channel);
@@ -28,23 +28,25 @@ export class TransparentOutputStreamCommunicator implements OutputStreamCommunic
             packet.send();
         }
     }
-};
+}
 
 export class UnboundedBufferedInputStreamCommunicator implements BufferedInputStreamCommunicator, Consumer {
-    private _onData: (data: Buffer) => void = () => { };
+    private _onData?: (data: Buffer) => void;
 
     constructor(mux: Mux, channel: number) {
         mux.subscribeChannel(channel, this);
     }
 
     public processPacket(data: Buffer): void {
-        this._onData(data);
+        if (this._onData) {
+            this._onData(data);
+        }
     }
 
-    public onData(callback: (data: Buffer) => void): void {
+    public onData(callback: ((data: Buffer) => void) | undefined): void {
         this._onData = callback;
     }
-};
+}
 
 
 export class TransparentOutputPacketCommunicator implements OutputPacketCommunicator {
@@ -63,21 +65,23 @@ export class TransparentOutputPacketCommunicator implements OutputPacketCommunic
     public maxPacketSize(): number {
         return this.mux.maxPacketSize();
     }
-};
+}
 
 
 export class UnboundedBufferedInputPacketCommunicator implements BufferedInputPacketCommunicator, Consumer {
-    private _onData: (data: Buffer) => void = () => { };
+    private _onData?: (data: Buffer) => void;
 
     constructor(mux: Mux, channel: number) {
         mux.subscribeChannel(channel, this);
     }
 
     public processPacket(data: Buffer): void {
-        this._onData(data);
+        if (this._onData) {
+            this._onData(data);
+        }
     }
 
-    public onData(callback: (data: Buffer) => void): void {
+    public onData(callback: ((data: Buffer) => void) | undefined): void {
         this._onData = callback;
     }
-};
+}

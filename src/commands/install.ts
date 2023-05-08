@@ -1,13 +1,13 @@
 import { Command, Opt } from "./lib/command.js";
 import path from "path";
 import fs from "fs";
-import https from "https"
+import https from "https";
 import unzipper from "unzipper";
 import { logger } from "../util/logger.js";
 import cliProgress from "cli-progress";
 import { stdout, stderr } from "process";
 import child_process from "child_process";
-import chalk from "chalk"
+import chalk from "chalk";
 import os from "os";
 
 
@@ -31,11 +31,15 @@ function downloadAndExtract(url: string, target: string): Promise<void> {
     return new Promise((resolve, reject) => {
         https.get(url, (res) => {
             if (res.statusCode == 302) {
-                let url = res.headers.location;
+                const url = res.headers.location;
                 logger.verbose("Redirecting to " + url);
-                downloadAndExtract(url!, target)
-                .then(resolve)
-                .catch(reject);
+                if (!url) {
+                    reject("No redirect URL");
+                    return;
+                }
+                downloadAndExtract(url, target)
+                    .then(resolve)
+                    .catch(reject);
                 return;
             }
             if (res.statusCode != 200) {
@@ -43,12 +47,12 @@ function downloadAndExtract(url: string, target: string): Promise<void> {
                 return;
             }
 
-            let totalSize = res.headers["content-length"] ? parseInt(res.headers["content-length"]) : undefined;
+            const totalSize = res.headers["content-length"] ? parseInt(res.headers["content-length"]) : undefined;
 
             let bar: cliProgress.SingleBar | undefined;
 
             if (totalSize) {
-                let [div, unit] = getSizeUnit(totalSize);
+                const [div, unit] = getSizeUnit(totalSize);
 
                 bar = new cliProgress.SingleBar({
                     progressCalculationRelative: true,
@@ -69,7 +73,7 @@ function downloadAndExtract(url: string, target: string): Promise<void> {
             }
 
 
-            let extract = unzipper.Extract({ path: target });
+            const extract = unzipper.Extract({ path: target });
 
             res.on("data", (chunk) => {
                 if (bar) {
@@ -95,8 +99,8 @@ function downloadAndExtract(url: string, target: string): Promise<void> {
 }
 
 function getJaculusDataDir(): string {
-    let homeDir = os.homedir();
-    let jaculusDir = path.join(homeDir, ".jaculus");
+    const homeDir = os.homedir();
+    const jaculusDir = path.join(homeDir, ".jaculus");
     if (!fs.existsSync(jaculusDir)) {
         fs.mkdirSync(jaculusDir);
     }
@@ -145,16 +149,16 @@ async function installUpstream(port: string, platform: string, idf: string, upst
     // ----- INSTALL ESP-IDF -----
     let downloaded = false;
     if (["download", "force-download"].includes(idf) && !fs.existsSync(idfPath)) {
-        let target = path.dirname(idfPath);
+        const target = path.dirname(idfPath);
 
         // download
         stdout.write(chalk.green("\nDownloading ESP-IDF to " + target + " (from " + idfUrl + ")\n"));
         await downloadAndExtract(idfUrl, target)
-        .catch((err) => {
+            .catch((err) => {
             // TODO: remove downloaded file
-            stderr.write(chalk.red("Error downloading ESP-IDF: " + err + "\n"));
-            throw 1;
-        });
+                stderr.write(chalk.red("Error downloading ESP-IDF: " + err + "\n"));
+                throw 1;
+            });
 
         stdout.write("ESP-IDF downloaded");
         downloaded = true;
@@ -200,7 +204,7 @@ async function installUpstream(port: string, platform: string, idf: string, upst
     }
 
     // ----- DOWNLOAD JACULUS -----
-    let jacPath = path.join(getJaculusDataDir(), jacDir);
+    const jacPath = path.join(getJaculusDataDir(), jacDir);
 
     if (upstream == "force" && fs.existsSync(jacPath)) {
         fs.rmSync(jacPath, { recursive: true, force: true });
@@ -210,11 +214,11 @@ async function installUpstream(port: string, platform: string, idf: string, upst
         stdout.write(chalk.green("\nDownloading Jaculus from " + jacUrl + "\n"));
 
         await downloadAndExtract(jacUrl, getJaculusDataDir())
-        .catch((err) => {
+            .catch((err) => {
             // TODO: remove downloaded files
-            stderr.write(chalk.red("Error downloading Jaculus: " + err + "\n"));
-            throw 1;
-        });
+                stderr.write(chalk.red("Error downloading Jaculus: " + err + "\n"));
+                throw 1;
+            });
     }
 
     // ----- CONFIGURE JACULUS -----
@@ -237,7 +241,7 @@ async function installUpstream(port: string, platform: string, idf: string, upst
     }
 
     // ----- BUILD AND FLASH JACULUS -----
-    let idfCommand = "idf.py -p " + port + " build flash";
+    const idfCommand = "idf.py -p " + port + " build flash";
 
     let command: string;
     if (process.platform == "win32") {
@@ -264,22 +268,23 @@ async function installUpstream(port: string, platform: string, idf: string, upst
     }
 }
 
-async function installJaculusBinary(port: string, platform: string): Promise<void> {
+async function installJaculusBinary(port: string, platform: string): Promise<void> { // eslint-disable-line @typescript-eslint/no-unused-vars
     // chage default values of upstream and idf
+
     stderr.write("Binary distribution is not implemented");
     throw 1;
 }
 
 
-let cmd = new Command("Install Jaculus to device", {
-    action: async (options: Record<string, string | boolean>, args: Record<string, string>) => {
-        let platform = options["platform"] as string;
-        let port = options["port"] as string;
+const cmd = new Command("Install Jaculus to device", {
+    action: async (options: Record<string, string | boolean>) => {
+        const platform = options["platform"] as string;
+        const port = options["port"] as string;
 
-        let upstream = options["upstream"] as string;
+        const upstream = options["upstream"] as string;
 
         if (["yes", "force"].includes(upstream)) {
-            let idf = options["idf"] as string;
+            const idf = options["idf"] as string;
             await installUpstream(port, platform, idf, upstream);
         }
         else {

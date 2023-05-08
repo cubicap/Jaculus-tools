@@ -5,11 +5,11 @@ import * as net from "net";
 import { SerialPort } from "serialport";
 
 
-let cmd = new Command("Tunnel a serial port over a TCP socket", {
-    action: async (options: Record<string, string | boolean>, args: Record<string, string>) => {
-        let baudrate = options["baudrate"] as string;
+const cmd = new Command("Tunnel a serial port over a TCP socket", {
+    action: async (options: Record<string, string | boolean>) => {
+        const baudrate = options["baudrate"] as string;
         let socket = defaultSocket(options["socket"] as string | undefined);
-        let portPath = await defaultPort(options["port"] as string | undefined);
+        const portPath = await defaultPort(options["port"] as string | undefined);
 
         return new Promise((resolve, reject) => {
             if (socket.startsWith("localhost:")) {
@@ -19,9 +19,9 @@ let cmd = new Command("Tunnel a serial port over a TCP socket", {
             stdout.write("Tunneling " + portPath + " at " + baudrate + " bauds\n");
 
 
-            let sockets: Set<net.Socket> = new Set();
+            const sockets: Set<net.Socket> = new Set();
 
-            let port = new SerialPort({
+            const port = new SerialPort({
                 path: portPath,
                 baudRate: parseInt(baudrate),
                 autoOpen: false
@@ -36,15 +36,14 @@ let cmd = new Command("Tunnel a serial port over a TCP socket", {
                 port.set({
                     rts: false,
                     dtr: false
-                })
+                });
 
                 setTimeout(() => {
                     port.set({
                         rts: true,
                         dtr: true
-                    })},
-                    10
-                )
+                    });
+                }, 10);
             });
 
             port.on("error", (err) => {
@@ -58,14 +57,14 @@ let cmd = new Command("Tunnel a serial port over a TCP socket", {
             });
 
             port.on("data", (data) => {
-                for (let socket of sockets) {
+                for (const socket of sockets) {
                     socket.write(data);
                 }
                 stdout.write("Port >> 『" + data + "』\n");
             });
 
 
-            let server = net.createServer((socket) => {
+            const server = net.createServer((socket) => {
                 sockets.add(socket);
 
                 socket.on("data", (data) => {
@@ -97,7 +96,7 @@ let cmd = new Command("Tunnel a serial port over a TCP socket", {
 
             process.on("SIGINT", () => {
                 stdout.write("Closing...\n");
-                for (let socket of sockets.values()) {
+                for (const socket of sockets.values()) {
                     socket.end();
                 }
                 server.close();

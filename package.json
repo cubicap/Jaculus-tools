@@ -14,8 +14,9 @@
     "scripts": {
         "build": "tsc --build",
         "clean": "tsc --build --clean",
+        "lint": "eslint --ext .ts src unit",
         "test": "mocha",
-        "prepack": "npm run clean && npm run build && npm run test"
+        "prepack": "npm run lint && npm run clean && npm run build && npm run test"
     },
     "bin": {
         "jac": "./dist/src/commands/index.js"
@@ -43,8 +44,11 @@
         "@types/mocha": "^10.0.1",
         "@types/node": "^18.15.11",
         "@types/unzipper": "^0.10.5",
+        "@typescript-eslint/eslint-plugin": "^5.59.2",
+        "@typescript-eslint/parser": "^5.59.2",
         "chai": "^4.3.7",
         "chai-bytes": "^0.1.2",
+        "eslint": "^8.40.0",
         "mocha": "^10.2.0",
         "queue-fifo": "^0.2.6",
         "ts-node": "^10.9.1"

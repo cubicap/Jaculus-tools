@@ -46,12 +46,12 @@ function getOptName(arg: string): string | null {
 }
 
 function parseArgs(
-        argv: string[],
-        base: Record<string, string | boolean> = {},
-        expOpts: Record<string, Opt>,
-        expArgs: Arg[]
-    ): { options: Record<string, string | boolean>, args: Record<string, string>, unknown: string[] } {
-    let unknown: string[] = [];
+    argv: string[],
+    base: Record<string, string | boolean> = {},
+    expOpts: Record<string, Opt>,
+    expArgs: Arg[]
+): { options: Record<string, string | boolean>, args: Record<string, string>, unknown: string[] } {
+    const unknown: string[] = [];
 
     const options: Record<string, string | boolean> = { ...base };
     const argsList: string[] = [];
@@ -133,7 +133,7 @@ function parseArgs(
         }
     }
 
-    for (let [i, arg] of expArgs.entries()) {
+    for (const [i, arg] of expArgs.entries()) {
         if (i < argsList.length) {
             if (arg.validator && !arg.validator(argsList[i])) {
                 throw new Error(`Argument ${arg.name} has an invalid value`);
@@ -151,7 +151,7 @@ function parseArgs(
         }
     }
 
-    let args: Record<string, string> = {};
+    const args: Record<string, string> = {};
     for (let i = 0; i < expArgs.length; i++) {
         args[expArgs[i].name] = argsList[i];
     }
@@ -204,15 +204,15 @@ export class Command {
     private action?: (options: Record<string, string | boolean>, args: Record<string, string>, env: Env) => Promise<void>;
 
     constructor(
-            brief: string,
-            options: {
+        brief: string,
+        options: {
                 options?: Record<string, Opt>,
                 args?: Arg[],
                 action?: (options: Record<string, string | boolean>, args: Record<string, string>, env: Env) => Promise<void>,
                 description?: string,
                 chainable?: boolean
             } = {}
-        ) {
+    ) {
         this.options = options.options ?? {};
         this.args = options.args ?? [];
         this.action = options.action;
@@ -241,21 +241,21 @@ export class Command {
 
         let table = [];
         for (const [name, opt] of Object.entries(this.options)) {
-            let desc = opt.description + (opt.defaultValue ? ` (default: ${opt.defaultValue})` : "");
+            const desc = opt.description + (opt.defaultValue ? ` (default: ${opt.defaultValue})` : "");
             table.push([`--${name}`, desc]);
         }
         if (table.length > 0) {
-            help += `Options:\n`;
+            help += "Options:\n";
             help += tableToString(table, { padding: 2, indent: 2, minWidths: [12] });
         }
 
         table = [];
         for (const arg of this.args) {
-            let desc = arg.description + (arg.defaultValue ? ` (default: ${arg.defaultValue})` : "");
+            const desc = arg.description + (arg.defaultValue ? ` (default: ${arg.defaultValue})` : "");
             table.push([arg.name, desc]);
         }
         if (table.length > 0) {
-            help += `Arguments:\n`;
+            help += "Arguments:\n";
             help += tableToString(table, { padding: 2, indent: 2, minWidths: [12] });
         }
 
@@ -274,7 +274,7 @@ export class Command {
     }
 
     public validate(argv: string[], globals: Record<string, string | boolean>): string[] {
-        const { options, args, unknown } = parseArgs(argv, globals, this.options, this.args);
+        const { unknown } = parseArgs(argv, globals, this.options, this.args);
 
         return unknown;
     }
@@ -318,7 +318,7 @@ export class Program {
         out += "\nGlobal options:\n";
         table = [];
         for (const [name, opt] of Object.entries(this.globalOptions)) {
-            let desc = opt.description + (opt.defaultValue ? ` (default: ${opt.defaultValue})` : "");
+            const desc = opt.description + (opt.defaultValue ? ` (default: ${opt.defaultValue})` : "");
             table.push([`--${name}`, desc]);
         }
         out += tableToString(table, { padding: 2, indent: 2, minWidths: [12] });
@@ -352,7 +352,7 @@ export class Program {
     }
 
     private validateSingle(argv: string[], globals: Record<string, string | boolean> = {}): void {
-        let { options, unknown } = parseArgs(argv, globals, this.globalOptions, []);
+        const { unknown } = parseArgs(argv, globals, this.globalOptions, []);
 
         if (unknown.length === 0) {
             return;
@@ -365,7 +365,7 @@ export class Program {
             throw new Error(`Unknown command ${commandName}`);
         }
 
-        let remaining = command.validate(unknown.slice(1), globals);
+        const remaining = command.validate(unknown.slice(1), globals);
 
         if (remaining.length > 0) {
             throw new Error(`Unknown option ${remaining[0]}`);
@@ -373,7 +373,9 @@ export class Program {
     }
 
     private async runChain(argv: string[], globals: Record<string, string | boolean> = {}): Promise<void> {
-        let { options, unknown } = parseArgs(argv, globals, this.globalOptions, []);
+        const res = parseArgs(argv, globals, this.globalOptions, []);
+        let unknown = res.unknown;
+        const options = res.options;
 
         this.validateChain(unknown, options);
 
@@ -389,7 +391,7 @@ export class Program {
     }
 
     private validateChain(argv: string[], globals: Record<string, string | boolean> = {}): void {
-        let { options, unknown } = parseArgs(argv, globals, this.globalOptions, []);
+        let { unknown } = parseArgs(argv, globals, this.globalOptions, []);
 
         if (unknown.length === 0) {
             return;
@@ -417,10 +419,10 @@ export class Program {
     }
 
     public async run(argv: string[], globals: Record<string, string | boolean> = {}): Promise<void> {
-        let { options, unknown } = parseArgs(argv, globals, this.globalOptions, []);
+        const { options, unknown } = parseArgs(argv, globals, this.globalOptions, []);
 
         if (unknown.length === 0) {
-            throw new Error('Command not specified');
+            throw new Error("Command not specified");
         }
 
         const commandName = unknown[0];
@@ -439,7 +441,7 @@ export class Program {
     }
 
     public end(): void {
-        for (const [_, { value, onEnd }] of Object.entries(this.env)) {
+        for (const [, { value, onEnd }] of Object.entries(this.env)) {
             onEnd(value);
         }
     }

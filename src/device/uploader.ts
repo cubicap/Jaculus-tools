@@ -19,7 +19,7 @@ export enum UploaderCommand {
     NOT_FOUND = 0x22,
     CONTINUE = 0x23,
     LOCK_NOT_OWNED = 0x24,
-};
+}
 
 export class Uploader {
     private _in: BufferedInputPacketCommunicator;
@@ -40,7 +40,7 @@ export class Uploader {
     }
 
     waitContinue(): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             this._onContinue = () => {
                 this._onContinue = undefined;
                 resolve();
@@ -49,73 +49,73 @@ export class Uploader {
     }
 
     private processPacket(data_: Buffer): boolean {
-        let data = Buffer.from(data_);
+        const data = Buffer.from(data_);
         if (data.length < 1) {
             return false;
         }
 
-        let cmd: UploaderCommand = data[0];
+        const cmd: UploaderCommand = data[0];
 
         switch (cmd) {
-            case UploaderCommand.HAS_MORE_DATA:
-                if (this._onData) {
-                    let success = this._onData(data.slice(1));
-                    if (!success) {
-                        this._onData = undefined;
-                        this._onDataComplete = undefined;
-                        return false;
-                    }
-                }
-                return true;
-            case UploaderCommand.LAST_DATA:
-                if (this._onData) {
-                    let success = this._onData(data.slice(1));
-                    if (!success) {
-                        this._onData = undefined;
-                        this._onDataComplete = undefined;
-                        return false;
-                    }
-                    if (this._onDataComplete) {
-                        success = this._onDataComplete();
-                    }
+        case UploaderCommand.HAS_MORE_DATA:
+            if (this._onData) {
+                const success = this._onData(data.slice(1));
+                if (!success) {
                     this._onData = undefined;
                     this._onDataComplete = undefined;
-                    return success;
+                    return false;
                 }
-                return true;
-            case UploaderCommand.OK:
-                if (this._onOk) {
-                    let success = this._onOk();
-                    this._onOk = undefined;
-                    return success;
+            }
+            return true;
+        case UploaderCommand.LAST_DATA:
+            if (this._onData) {
+                let success = this._onData(data.slice(1));
+                if (!success) {
+                    this._onData = undefined;
+                    this._onDataComplete = undefined;
+                    return false;
                 }
-                return true;
-            case UploaderCommand.CONTINUE:
-                if (this._onContinue) {
-                    this._onContinue();
+                if (this._onDataComplete) {
+                    success = this._onDataComplete();
                 }
-                return true;
-            case UploaderCommand.ERROR:
-            case UploaderCommand.NOT_FOUND:
-            case UploaderCommand.LOCK_NOT_OWNED:
-                if (this._onError) {
-                    let success = this._onError(cmd);
-                    this._onError = undefined;
-                    return success;
-                }
-                return true;
-            default:
-                if (this._onError) {
-                    let success = this._onError(cmd);
-                    this._onError = undefined;
-                    return success;
-                }
-                return false;
+                this._onData = undefined;
+                this._onDataComplete = undefined;
+                return success;
+            }
+            return true;
+        case UploaderCommand.OK:
+            if (this._onOk) {
+                const success = this._onOk();
+                this._onOk = undefined;
+                return success;
+            }
+            return true;
+        case UploaderCommand.CONTINUE:
+            if (this._onContinue) {
+                this._onContinue();
+            }
+            return true;
+        case UploaderCommand.ERROR:
+        case UploaderCommand.NOT_FOUND:
+        case UploaderCommand.LOCK_NOT_OWNED:
+            if (this._onError) {
+                const success = this._onError(cmd);
+                this._onError = undefined;
+                return success;
+            }
+            return true;
+        default:
+            if (this._onError) {
+                const success = this._onError(cmd);
+                this._onError = undefined;
+                return success;
+            }
+            return false;
         }
     }
 
-    public encodePath(path_: string, nullTerminate: boolean = true): Buffer {
-        let data = Buffer.alloc(path_.length + (nullTerminate ? 1 : 0));
+    public encodePath(path_: string, nullTerminate = true): Buffer {
+        const data = Buffer.alloc(path_.length + (nullTerminate ? 1 : 0));
         for (let i = 0; i < path_.length; i++) {
             data[i] = path_.charCodeAt(i);
         }
@@ -130,7 +130,7 @@ export class Uploader {
         return new Promise((resolve, reject) => {
             let data: Buffer = Buffer.alloc(0);
             this._onData = (d: Buffer) => {
-                let newData = Buffer.alloc(data.length + d.length);
+                const newData = Buffer.alloc(data.length + d.length);
                 newData.set(data);
                 newData.set(d, data.length);
                 data = newData;
@@ -144,9 +144,9 @@ export class Uploader {
                 reject(cmd);
                 return true;
             };
-            let packet = this._out.buildPacket();
+            const packet = this._out.buildPacket();
             packet.put(UploaderCommand.READ_FILE);
-            for (let b of this.encodePath(path_, false)) {
+            for (const b of this.encodePath(path_, false)) {
                 packet.put(b);
             }
             packet.send();
@@ -155,52 +155,53 @@ export class Uploader {
 
     public writeFile(path_: string, data: Buffer): Promise<UploaderCommand> {
         logger.verbose("Writing file: " + path_ + " - " + data.length);
-        return new Promise(async (resolve, reject) => {
-
+        return new Promise((resolve, reject) => {
             this._onOk = () => {
                 resolve(UploaderCommand.OK);
                 return true;
-            }
+            };
 
             this._onError = (cmd: UploaderCommand) => {
                 reject(cmd);
                 return true;
-            }
+            };
 
-            let packet: Packet | null = this._out.buildPacket();
-            packet.put(UploaderCommand.WRITE_FILE);
-            for (let b of this.encodePath(path_, true)) {
-                packet.put(b);
-            }
-
-            let offset = 0;
-            let prefix = UploaderCommand.HAS_MORE_DATA;
-            let last = false;
-            do {
-                let chunkSize = Math.min(data.length - offset, this._out.maxPacketSize() - 1);
-                if (packet != null) {
-                    chunkSize = Math.min(chunkSize, packet.space() - 1);
-                }
-                else {
-                    packet = this._out.buildPacket();
+            (async () => {
+                let packet: Packet | null = this._out.buildPacket();
+                packet.put(UploaderCommand.WRITE_FILE);
+                for (const b of this.encodePath(path_, true)) {
+                    packet.put(b);
                 }
 
-                if (offset + chunkSize >= data.length) {
-                    last = true;
-                    prefix = UploaderCommand.LAST_DATA;
-                }
+                let offset = 0;
+                let prefix = UploaderCommand.HAS_MORE_DATA;
+                let last = false;
+                do {
+                    let chunkSize = Math.min(data.length - offset, this._out.maxPacketSize() - 1);
+                    if (packet != null) {
+                        chunkSize = Math.min(chunkSize, packet.space() - 1);
+                    }
+                    else {
+                        packet = this._out.buildPacket();
+                    }
 
-                packet.put(prefix);
-                for (let i = 0; i < chunkSize; i++, offset++) {
-                    packet.put(data[offset]);
-                }
+                    if (offset + chunkSize >= data.length) {
+                        last = true;
+                        prefix = UploaderCommand.LAST_DATA;
+                    }
 
-                packet.send();
-                packet = null;
-                if (!last) {
-                    await this.waitContinue();
-                }
-            } while (offset < data.length);
+                    packet.put(prefix);
+                    for (let i = 0; i < chunkSize; i++, offset++) {
+                        packet.put(data[offset]);
+                    }
+
+                    packet.send();
+                    packet = null;
+                    if (!last) {
+                        await this.waitContinue();
+                    }
+                } while (offset < data.length);
+            })();
         });
     }
 
@@ -210,42 +211,42 @@ export class Uploader {
             this._onOk = () => {
                 resolve(UploaderCommand.OK);
                 return true;
-            }
+            };
 
             this._onError = (cmd: UploaderCommand) => {
                 reject(cmd);
                 return true;
-            }
+            };
 
-            let packet = this._out.buildPacket();
+            const packet = this._out.buildPacket();
             packet.put(UploaderCommand.DELETE_FILE);
-            for (let b of this.encodePath(path_, false)) {
+            for (const b of this.encodePath(path_, false)) {
                 packet.put(b);
             }
             packet.send();
         });
     }
 
-    public listDirectory(path_: string, flags: string = ""): Promise<[string, boolean, number][]> {
+    public listDirectory(path_: string, flags = ""): Promise<[string, boolean, number][]> {
         logger.verbose("Listing directory: " + path_ + " - '" + flags + "'");
         return new Promise((resolve, reject) => {
             let data: Buffer = Buffer.alloc(0);
             this._onData = (d: Buffer) => {
-                let newData = Buffer.alloc(data.length + d.length);
+                const newData = Buffer.alloc(data.length + d.length);
                 newData.set(data);
                 newData.set(d, data.length);
                 data = newData;
                 return true;
             };
             this._onDataComplete = () => {
-                let buffer = Buffer.alloc(270);
+                const buffer = Buffer.alloc(270);
                 let bufferIn = 0;
-                let result: [string, boolean, number][] = [];
+                const result: [string, boolean, number][] = [];
                 for (let i = 0; i < data.length; i++) {
-                    let b = data[i];
+                    const b = data[i];
                     if (b == 0) {
                         let name = buffer.toString("utf8", 0, buffer.indexOf(0));
-                        let isDir = name.charAt(0) == "d";
+                        const isDir = name.charAt(0) == "d";
                         name = name.slice(1);
                         let size = 0;
                         for (let off = 0; off < 4; off++) {
@@ -269,12 +270,12 @@ export class Uploader {
                 reject(cmd);
                 return true;
             };
-            let packet = this._out.buildPacket();
+            const packet = this._out.buildPacket();
             packet.put(UploaderCommand.LIST_DIR);
-            for (let b of this.encodePath(path_, true)) {
+            for (const b of this.encodePath(path_, true)) {
                 packet.put(b);
             }
-            for (let b of flags) {
+            for (const b of flags) {
                 packet.put(b.charCodeAt(0));
             }
             packet.send();
@@ -287,16 +288,16 @@ export class Uploader {
             this._onOk = () => {
                 resolve(UploaderCommand.OK);
                 return true;
-            }
+            };
 
             this._onError = (cmd: UploaderCommand) => {
                 reject(cmd);
                 return true;
-            }
+            };
 
-            let packet = this._out.buildPacket();
+            const packet = this._out.buildPacket();
             packet.put(UploaderCommand.CREATE_DIR);
-            for (let b of this.encodePath(path_, false)) {
+            for (const b of this.encodePath(path_, false)) {
                 packet.put(b);
             }
             packet.send();
@@ -309,16 +310,16 @@ export class Uploader {
             this._onOk = () => {
                 resolve(UploaderCommand.OK);
                 return true;
-            }
+            };
 
             this._onError = (cmd: UploaderCommand) => {
                 reject(cmd);
                 return true;
-            }
+            };
 
-            let packet = this._out.buildPacket();
+            const packet = this._out.buildPacket();
             packet.put(UploaderCommand.DELETE_DIR);
-            for (let b of this.encodePath(path_, false)) {
+            for (const b of this.encodePath(path_, false)) {
                 packet.put(b);
             }
             packet.send();
@@ -327,31 +328,26 @@ export class Uploader {
 
     public async upload(from: string, to: string): Promise<UploaderCommand> {
         logger.info("Uploading " + from + " to " + to);
-        try {
-            if (fs.lstatSync(from).isDirectory()) {
-                let files = fs.readdirSync(from);
+        if (fs.lstatSync(from).isDirectory()) {
+            const files = fs.readdirSync(from);
 
-                await this.createDirectory(to).catch((cmd: UploaderCommand) => {
-                    throw "Failed to create directory (" + cmd + ")";
+            await this.createDirectory(to).catch((cmd: UploaderCommand) => {
+                throw "Failed to create directory (" + cmd + ")";
+            });
+            for (const file of files) {
+                await this.upload(path.join(from, file), to + "/" + file).catch((err) => {
+                    throw err;
                 });
-                for (let file of files) {
-                    await this.upload(path.join(from, file), to + "/" + file).catch((err) => {
-                        throw err;
-                    });
-                }
-                return UploaderCommand.OK;
             }
-            else {
-                let data = fs.readFileSync(from);
-
-                await this.writeFile(to, data).catch((cmd: UploaderCommand) => {
-                    throw "Failed to write file (" + to + "): " + cmd;
-                });
-                return UploaderCommand.OK;
-            }
+            return UploaderCommand.OK;
         }
-        catch (e) {
-            throw e;
+        else {
+            const data = fs.readFileSync(from);
+
+            await this.writeFile(to, data).catch((cmd: UploaderCommand) => {
+                throw "Failed to write file (" + to + "): " + cmd;
+            });
+            return UploaderCommand.OK;
         }
     }
 
@@ -361,8 +357,8 @@ export class Uploader {
             throw "Source must be a directory";
         }
 
-        let files = fs.readdirSync(from);
-        for (let file of files) {
+        const files = fs.readdirSync(from);
+        for (const file of files) {
             await this.upload(path.join(from, file), to + "/" + file).catch((err) => {
                 throw err;
             });
@@ -373,7 +369,7 @@ export class Uploader {
     private async pullFile(from: string, to: string): Promise<UploaderCommand> {
         logger.info("Pulling " + from + " to " + to);
 
-        let data = await this.readFile(from).catch((cmd: UploaderCommand) => {
+        const data = await this.readFile(from).catch((cmd: UploaderCommand) => {
             throw "Failed to read file (" + cmd + ")";
         });
 
@@ -385,7 +381,7 @@ export class Uploader {
     private async pullDir(from: string, to: string): Promise<UploaderCommand> {
         logger.info("Pulling " + from + " to " + to);
 
-        let files = await this.listDirectory(from).catch((cmd: UploaderCommand) => {
+        const files = await this.listDirectory(from).catch((cmd: UploaderCommand) => {
             throw "Failed to list directory (" + cmd + ")";
         });
 
@@ -399,9 +395,9 @@ export class Uploader {
             throw "Destination directory is not empty";
         }
 
-        for (let file of files) {
-            let name = file[0];
-            let isDir = file[1];
+        for (const file of files) {
+            const name = file[0];
+            const isDir = file[1];
             if (isDir) {
                 await this.pullDir(from + "/" + name, to + "/" + name).catch((err) => {
                     throw err;
@@ -419,7 +415,7 @@ export class Uploader {
     public async pull(from: string, to: string): Promise<UploaderCommand> {
         logger.verbose("Pulling " + from + " to " + to);
 
-        let [_, isDir, __] = await this.listDirectory(from).catch((cmd: UploaderCommand) => {
+        const [, isDir, ] = await this.listDirectory(from).catch((cmd: UploaderCommand) => {
             throw "Failed to get file type (" + cmd + ")";
         });
 

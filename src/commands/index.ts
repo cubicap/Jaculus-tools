@@ -5,7 +5,7 @@ import { logger } from "../util/logger.js";
 import { stdout } from "process";
 
 
-let jac = new Program("jac", "Tools for controlling devices running Jaculus", {
+const jac = new Program("jac", "Tools for controlling devices running Jaculus", {
     globalOptions: {
         "log-level": new Opt("Set log level", { defaultValue: "info" }),
         "help": new Opt("Print this help message", { isFlag: true }),
@@ -25,9 +25,9 @@ let jac = new Program("jac", "Tools for controlling devices running Jaculus", {
 
 jac.addCommand("help", new Command("Print help for given command", {
     action: async (options: Record<string, string | boolean>, args: Record<string, string>) => {
-        let command = args["command"];
+        const command = args["command"];
         if (command) {
-            let cmd = jac.getCommand(command);
+            const cmd = jac.getCommand(command);
             if (cmd) {
                 stdout.write(cmd.help(command) + "\n");
             }
@@ -70,7 +70,7 @@ jac.addCommand("install", install);
 jac.addCommand("build", build);
 jac.addCommand("flash", flash);
 
-jac.addCommand("pull", pull)
+jac.addCommand("pull", pull);
 jac.addCommand("ls", ls);
 jac.addCommand("read", read);
 jac.addCommand("write", write);
@@ -87,7 +87,7 @@ jac.addCommand("version", version);
 jac.addCommand("monitor", monitor);
 
 
-let args = process.argv.slice(2);
+const args = process.argv.slice(2);
 
 if (args.length === 0) {
     args.push("help");

@@ -1,17 +1,17 @@
-import { Arg, Command, Env, Opt } from "./lib/command.js";
+import { Command, Env, Opt } from "./lib/command.js";
 import { stdout } from "process";
-import { getDevice, withDevice } from "./util.js";
+import { getDevice } from "./util.js";
 import { logger } from "../util/logger.js";
 
 
-let cmd = new Command("Flash code to device (replace contents of ./code)", {
+const cmd = new Command("Flash code to device (replace contents of ./code)", {
     action: async (options: Record<string, string | boolean>, args: Record<string, string>, env: Env) => {
-        let port = options["port"] as string;
-        let baudrate = options["baudrate"] as string;
-        let socket = options["socket"] as string;
-        let from = options["from"] as string;
+        const port = options["port"] as string;
+        const baudrate = options["baudrate"] as string;
+        const socket = options["socket"] as string;
+        const from = options["from"] as string;
 
-        let device = await getDevice(port, baudrate, socket, env);
+        const device = await getDevice(port, baudrate, socket, env);
 
         await device.controller.lock().catch((err) => {
             stdout.write("Error locking device: " + err);
@@ -26,7 +26,7 @@ let cmd = new Command("Flash code to device (replace contents of ./code)", {
             logger.verbose("Error deleting directory: " + err);
         });
 
-        let cmd = await device.uploader.upload(from, "code").catch((err) => {
+        const cmd = await device.uploader.upload(from, "code").catch((err) => {
             stdout.write("Error uploading: " + err + "\n");
             throw 1;
         });

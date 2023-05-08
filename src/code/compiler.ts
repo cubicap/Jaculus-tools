@@ -10,7 +10,7 @@ function printMessage(message: string | ts.DiagnosticMessageChain, stream: Writa
     else {
         stream.write(" ".repeat(indent * 2) + message.messageText + "\n");
         if (message.next) {
-            for (let next of message.next) {
+            for (const next of message.next) {
                 printMessage(next, stream, indent + 1);
             }
         }
@@ -18,11 +18,11 @@ function printMessage(message: string | ts.DiagnosticMessageChain, stream: Writa
 }
 
 export function compile(input: string, outDir: string, err: Writable = stderr): boolean {
-    let tsconfig = ts.findConfigFile(input, ts.sys.fileExists, "tsconfig.json");
+    const tsconfig = ts.findConfigFile(input, ts.sys.fileExists, "tsconfig.json");
     if (!tsconfig) {
         throw new Error("Could not find tsconfig.json");
     }
-    let config = ts.readConfigFile(tsconfig, ts.sys.readFile);
+    const config = ts.readConfigFile(tsconfig, ts.sys.readFile);
     if (config.error) {
         printMessage(config.error.messageText, err);
         throw new Error("Error reading tsconfig.json");
@@ -39,13 +39,13 @@ export function compile(input: string, outDir: string, err: Writable = stderr): 
 
     config.config.compilerOptions = config.config.compilerOptions || forcedOptions;
 
-    let { options, fileNames, errors } = ts.parseJsonConfigFileContent(config.config, ts.sys, input);
+    const { options, fileNames, errors } = ts.parseJsonConfigFileContent(config.config, ts.sys, input);
     if (errors.length > 0) {
         errors.forEach(error => printMessage(error.messageText, err));
         throw new Error("Error parsing tsconfig.json");
     }
 
-    for (let [ key, value ] of Object.entries(forcedOptions)) {
+    for (const [ key, value ] of Object.entries(forcedOptions)) {
         if (options[key] && options[key] !== value) {
             throw new Error(`tsconfig.json must have ${key} set to ${value}`);
         }
@@ -56,14 +56,17 @@ export function compile(input: string, outDir: string, err: Writable = stderr): 
 
     logger.verbose("Compiling files:" + fileNames.join(", "));
 
-    let program = ts.createProgram(fileNames, options);
-    let emitResult = program.emit();
+    const program = ts.createProgram(fileNames, options);
+    const emitResult = program.emit();
 
-    let allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
+    const allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
 
     allDiagnostics.forEach(diagnostic => {
         if (diagnostic.file) {
-            let { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!);
+            if (!diagnostic.start) {
+                throw new Error("Diagnostic has no start");
+            }
+            const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
             printMessage(`${diagnostic.file.fileName} (${line + 1},${character + 1}): `, err);
             printMessage(diagnostic.messageText, err);
         }

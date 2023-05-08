@@ -1,5 +1,5 @@
 import { Serializer, Packetizer } from "./interface";
-import crc16 from 'crc/crc16'
+import crc16 from "crc/crc16";
 
 
 class PacketStructure {
@@ -18,12 +18,12 @@ class PacketStructure {
 
     protected buffer = Buffer.alloc(this.OFFSET_DATA + this.SIZE_DATA_MAX + this.SIZE_CHECKSUM);
 
-};
+}
 
 // TODO: change interface to be more like the C++ version
 
 export class CobsSerializer extends PacketStructure implements Serializer {
-    private _dataSize: number = 0;
+    private _dataSize = 0;
 
     public capacity(): number {
         return this.SIZE_DATA_MAX;
@@ -50,15 +50,15 @@ export class CobsSerializer extends PacketStructure implements Serializer {
     }
 
     finalize(channel: number): Buffer {
-        let length = this.OFFSET_DATA + this._dataSize + this.SIZE_CHECKSUM;
-        let crcOffset = this.OFFSET_DATA + this._dataSize;
+        const length = this.OFFSET_DATA + this._dataSize + this.SIZE_CHECKSUM;
+        const crcOffset = this.OFFSET_DATA + this._dataSize;
 
         this.buffer[this.OFFSET_DELIMITER] = this.DELIMITER;
         this.buffer[this.OFFSET_LENGTH] = crcOffset + this.SIZE_CHECKSUM - this.OFFSET_COBS;
         this.buffer[this.OFFSET_COBS] = this.DELIMITER;
         this.buffer[this.OFFSET_CHANNEL] = channel;
 
-        let crc = crc16(this.buffer.subarray(this.OFFSET_CHANNEL, crcOffset));
+        const crc = crc16(this.buffer.subarray(this.OFFSET_CHANNEL, crcOffset));
         this.buffer[crcOffset] = crc & 0xFF;
         this.buffer[crcOffset + 1] = (crc >> 8) & 0xFF;
 
@@ -76,7 +76,7 @@ export class CobsSerializer extends PacketStructure implements Serializer {
 
         return Buffer.from(this.buffer.subarray(0, length));
     }
-};
+}
 
 export class CobsPacketizer extends PacketStructure implements Packetizer {
     private length = 0;
@@ -112,13 +112,13 @@ export class CobsPacketizer extends PacketStructure implements Packetizer {
     }
 
     decode(): { channel: number, data: Buffer } | null {
-        let frameLength = this.expectedLength();
+        const frameLength = this.expectedLength();
 
         if (this.length < frameLength) {
             return null;
         }
 
-        let crcOffset = this.OFFSET_COBS + this.buffer[this.OFFSET_LENGTH] - this.SIZE_CHECKSUM;
+        const crcOffset = this.OFFSET_COBS + this.buffer[this.OFFSET_LENGTH] - this.SIZE_CHECKSUM;
         let nextDelimOff = 0;
 
         for (let i = 2; i < frameLength; i++) {
@@ -129,8 +129,8 @@ export class CobsPacketizer extends PacketStructure implements Packetizer {
             nextDelimOff--;
         }
 
-        let crc = crc16(this.buffer.subarray(this.OFFSET_CHANNEL, crcOffset));
-        let crcReceived = this.buffer[crcOffset] | (this.buffer[crcOffset + 1] << 8);
+        const crc = crc16(this.buffer.subarray(this.OFFSET_CHANNEL, crcOffset));
+        const crcReceived = this.buffer[crcOffset] | (this.buffer[crcOffset + 1] << 8);
 
         if (nextDelimOff != 0 || crc != crcReceived) {
             return null;
@@ -139,6 +139,6 @@ export class CobsPacketizer extends PacketStructure implements Packetizer {
         return {
             channel: this.buffer[this.OFFSET_CHANNEL],
             data: Buffer.from(this.buffer.subarray(this.OFFSET_DATA, crcOffset))
-        }
+        };
     }
-};
+}

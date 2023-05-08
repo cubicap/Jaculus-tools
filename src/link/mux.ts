@@ -26,7 +26,7 @@ class MuxPacket implements Packet {
     public send(): void {
         this._stream.write(this._serializer.finalize(this._channel));
     }
-};
+}
 
 
 export class Mux {
@@ -41,7 +41,7 @@ export class Mux {
     private _packetizer: Packetizer;
     private _serializerCapacity: number;
 
-    public closed: boolean = false;
+    public closed = false;
 
     public constructor(PacketizerCtor: new () => Packetizer, SerializerCtor: new () => Serializer, stream: Duplex) {
         this._stream = stream;
@@ -59,11 +59,11 @@ export class Mux {
             throw new Error("Mux is closed");
         }
         logger.silly("receive『" + data.reduce((a, b) => a + String.fromCharCode(b), "") + "』");
-        for (let c of data) {
+        for (const c of data) {
             if (this._packetizer.put(c)) {
-                let result = this._packetizer.decode();
+                const result = this._packetizer.decode();
                 if (result) {
-                    let consumer = this._channels[result.channel];
+                    const consumer = this._channels[result.channel];
                     if (consumer) {
                         consumer.processPacket(Buffer.from(result.data));
                     }
@@ -117,4 +117,4 @@ export class Mux {
     public destroy(): Promise<void> {
         return this._stream.destroy();
     }
-};
+}

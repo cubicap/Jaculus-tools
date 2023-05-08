@@ -4,31 +4,31 @@ import { getDevice } from "./util.js";
 import chalk from "chalk";
 
 
-let cmd = new Command("List files in a directory", {
+const cmd = new Command("List files in a directory", {
     action: async (options: Record<string, string | boolean>, args: Record<string, string>, env: Env) => {
-        let port = options["port"] as string;
-        let baudrate = options["baudrate"] as string;
-        let socket = options["socket"] as string;
-        let path = args["path"] as string;
-        let directoryFlag = options["directory"] as boolean;
-        let sizeFlag = options["size"] as boolean;
+        const port = options["port"] as string;
+        const baudrate = options["baudrate"] as string;
+        const socket = options["socket"] as string;
+        const path = args["path"] as string;
+        const directoryFlag = options["directory"] as boolean;
+        const sizeFlag = options["size"] as boolean;
 
-        let flags = (directoryFlag ? "d" : "") + (sizeFlag ? "s" : "");
+        const flags = (directoryFlag ? "d" : "") + (sizeFlag ? "s" : "");
 
-        let device = await getDevice(port, baudrate, socket, env);
+        const device = await getDevice(port, baudrate, socket, env);
 
         await device.controller.lock().catch((err) => {
             stdout.write("Error locking device: " + err);
             throw 1;
         });
 
-        let listing = await device.uploader.listDirectory(path, flags).catch((err) => {
+        const listing = await device.uploader.listDirectory(path, flags).catch((err) => {
             stdout.write("Error: " + err + "\n");
             throw 1;
         });
 
         stdout.write("Listing of " + path + ":\n");
-        for (let [name, isDir, size] of listing) {
+        for (const [name, isDir, size] of listing) {
             stdout.write("  " + (isDir ? chalk.blueBright(name) : name) + (sizeFlag ? " (" + size + " bytes)" : "") + "\n");
         }
 

@@ -3,23 +3,23 @@ import { stdout } from "process";
 import { SerialPort } from "serialport";
 
 
-let cmd = new Command("List available serial ports", {
-    action: async (options: Record<string, string | boolean>, args: Record<string, string>) => {
+const cmd = new Command("List available serial ports", {
+    action: async () => {
         stdout.write("Available serial ports:\n");
-        let table: { path: string, manufacturer?: string }[] = [ { path: "Path", manufacturer: "Manufacturer" } ];
-        let ports = await SerialPort.list();
-        for (let port of ports) {
+        const table: { path: string, manufacturer?: string }[] = [ { path: "Path", manufacturer: "Manufacturer" } ];
+        const ports = await SerialPort.list();
+        for (const port of ports) {
             table.push({
                 path: port.path,
                 manufacturer: port.manufacturer
             });
         }
         let maxPathLength = 0;
-        for (let row of table) {
+        for (const row of table) {
             maxPathLength = Math.max(maxPathLength, row.path.length);
         }
         let first = true;
-        for (let row of table) {
+        for (const row of table) {
             stdout.write("  " + row.path.padEnd(maxPathLength) + "  " + (row.manufacturer || "") + "\n");
             if (first) {
                 first = false;

@@ -1,19 +1,19 @@
 import { Arg, Command, Env } from "./lib/command.js";
 import { stdout } from "process";
 import { getDevice } from "./util.js";
-import * as readline from "readline"
+import * as readline from "readline";
 
 
-let cmd = new Command("Write a file to device", {
+const cmd = new Command("Write a file to device", {
     action: async (options: Record<string, string | boolean>, args: Record<string, string>, env: Env) => {
-        let port = options["port"] as string;
-        let baudrate = options["baudrate"] as string;
-        let socket = options["socket"] as string;
-        let path = args["path"] as string;
+        const port = options["port"] as string;
+        const baudrate = options["baudrate"] as string;
+        const socket = options["socket"] as string;
+        const path = args["path"] as string;
 
-        let str = ""
+        let str = "";
         await new Promise((resolve, reject) => {
-            let rl = readline.createInterface({
+            const rl = readline.createInterface({
                 input: process.stdin,
                 output: process.stdout
             });
@@ -23,7 +23,7 @@ let cmd = new Command("Write a file to device", {
                 if (line == "\\") {
                     rl.close();
                     resolve(null);
-                return;
+                    return;
                 }
                 str += line + "\n";
             });
@@ -32,19 +32,19 @@ let cmd = new Command("Write a file to device", {
                 reject(null);
             });
         })
-        .catch((err) => {
-            stdout.write("Error: " + err + "\n");
-            throw 1;
-        });
+            .catch((err) => {
+                stdout.write("Error: " + err + "\n");
+                throw 1;
+            });
 
-        let device = await getDevice(port, baudrate, socket, env);
+        const device = await getDevice(port, baudrate, socket, env);
 
         await device.controller.lock().catch((err) => {
             stdout.write("Error locking device: " + err);
             throw 1;
         });
 
-        let cmd = await device.uploader.writeFile(path, Buffer.from(str, "utf-8")).catch((err) => {
+        const cmd = await device.uploader.writeFile(path, Buffer.from(str, "utf-8")).catch((err) => {
             stdout.write("Error: " + err + "\n");
             throw 1;
         });

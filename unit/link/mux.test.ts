@@ -1,9 +1,9 @@
-import "mocha"
-import chai from "chai"
+import "mocha";
+import chai from "chai";
 import chaiBytes from "chai-bytes";
 import { Mux } from "../../src/link/mux.js";
-import Queue from "queue-fifo"
-import { InputStream, OutputStream } from "../../src/link/stream.js";
+import Queue from "queue-fifo";
+import { Duplex } from "../../src/link/stream.js";
 import { Consumer } from "../../src/link/linkTypes.js";
 import { CobsPacketizer, CobsSerializer } from "../../src/link/encoders/cobs.js";
 
@@ -18,19 +18,19 @@ function toBuffer(data: Array<number|string>): Buffer {
     return Buffer.from(data.map(d => typeof d == "string" ? d.charCodeAt(0) : d));
 }
 
-class Pipe implements InputStream, OutputStream {
-    private _onData: (data: Buffer) => void = () => {};
-    private _onSend: (data: Buffer) => void = () => {};
+class Pipe implements Duplex {
+    private _onData: ((data: Buffer) => void) | undefined;
+    private _onSend: ((data: Buffer) => void) | undefined;
 
-    onData(callback: (data: Buffer) => void): void {
+    onData(callback: ((data: Buffer) => void) | undefined): void {
         this._onData = callback;
     }
 
-    onEnd(callback?: (() => void) | undefined): void {}
-    onError(callback?: ((err: any) => void) | undefined): void {}
+    onEnd(): void { /* do nothing */ }
+    onError(): void { /* do nothing */ }
     destroy(): Promise<void> { return Promise.resolve(); }
 
-    onSend(callback: (data: Buffer) => void): void {
+    onSend(callback: ((data: Buffer) => void) | undefined): void {
         this._onSend = callback;
     }
 
@@ -39,11 +39,15 @@ class Pipe implements InputStream, OutputStream {
     }
 
     write(buf: Buffer): void {
-        this._onSend(buf);
+        if (this._onSend) {
+            this._onSend(buf);
+        }
     }
 
     receive(buf: Buffer): void {
-        this._onData(buf);
+        if (this._onData) {
+            this._onData(buf);
+        }
     }
 }
 
@@ -58,19 +62,19 @@ class BufferConsumer implements Consumer {
 
 describe("Mux", () => {
     describe("send-receive packet", () => {
-        let pipe1 = new Pipe();
-        let pipe2 = new Pipe();
+        const pipe1 = new Pipe();
+        const pipe2 = new Pipe();
 
         pipe1.onSend((data: Buffer) => pipe2.receive(data));
         pipe2.onSend((data: Buffer) => pipe1.receive(data));
 
-        let mux1 = new Mux(CobsPacketizer, CobsSerializer, pipe1);
-        let mux2 = new Mux(CobsPacketizer, CobsSerializer, pipe2);
+        const mux1 = new Mux(CobsPacketizer, CobsSerializer, pipe1);
+        const mux2 = new Mux(CobsPacketizer, CobsSerializer, pipe2);
 
         const capacity = mux1.maxPacketSize();
 
         // [comment, channel, data]
-        let testData: [string, number, number[]][] = [
+        const testData: [string, number, number[]][] = [
             ["Empty packet", 0, []],
             ["Single byte", 1, [0x01]],
             ["Two bytes", 2, [0x01, 0x02]],
@@ -81,14 +85,14 @@ describe("Mux", () => {
         describe("global callback", () => {
             testData.forEach(([comment, channel, data]) => {
                 it(comment, () => {
-                    let queue: Queue<[number, Buffer]> = new Queue();
+                    const queue: Queue<[number, Buffer]> = new Queue();
 
                     mux2.setGlobalCallback((channel: number, data: Buffer) => {
                         queue.enqueue([channel, data]);
                     });
 
-                    let buf = toBuffer(data);
-                    let packet = mux1.buildPacket(channel);
+                    const buf = toBuffer(data);
+                    const packet = mux1.buildPacket(channel);
 
                     for (let i = 0; i < buf.length; i++) {
                         packet.put(buf[i]);
@@ -96,7 +100,7 @@ describe("Mux", () => {
                     packet.send();
 
                     expect(queue.size()).to.equal(1);
-                    let received = queue.dequeue();
+                    const received = queue.dequeue();
                     if (!received) {
                         throw new Error("No packet received");
                     }
@@ -110,12 +114,12 @@ describe("Mux", () => {
         describe("channel consumer", () => {
             testData.forEach(([comment, channel, data]) => {
                 it(comment, () => {
-                    let consumer = new BufferConsumer();
+                    const consumer = new BufferConsumer();
 
                     mux2.subscribeChannel(channel, consumer);
 
-                    let buf = toBuffer(data);
-                    let packet = mux1.buildPacket(channel);
+                    const buf = toBuffer(data);
+                    const packet = mux1.buildPacket(channel);
 
                     for (let i = 0; i < buf.length; i++) {
                         packet.put(buf[i]);
@@ -123,7 +127,7 @@ describe("Mux", () => {
                     packet.send();
 
                     expect(consumer.queue.size()).to.equal(1);
-                    let received = consumer.queue.dequeue();
+                    const received = consumer.queue.dequeue();
                     if (!received) {
                         throw new Error("No packet received");
                     }

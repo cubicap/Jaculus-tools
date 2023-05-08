@@ -3,16 +3,15 @@ import { stdout } from "process";
 import { getDevice } from "./util.js";
 
 
-let cmd = new Command("Get status of device", {
+const cmd = new Command("Get status of device", {
     action: async (options: Record<string, string | boolean>, args: Record<string, string>, env: Env) => {
-        let port = options["port"] as string;
-        let baudrate = options["baudrate"] as string;
-        let socket = options["socket"] as string;
-        let path = args["path"] as string;
+        const port = options["port"] as string;
+        const baudrate = options["baudrate"] as string;
+        const socket = options["socket"] as string;
 
-        let device = await getDevice(port, baudrate, socket, env);
+        const device = await getDevice(port, baudrate, socket, env);
 
-        let status = await device.controller.status().catch((err) => {
+        const status = await device.controller.status().catch((err) => {
             stdout.write("Error: " + err + "\n");
             throw 1;
         });

@@ -4,9 +4,9 @@ import { compile } from "../code/compiler.js";
 import * as fs from "fs";
 
 
-function listDts(dir: string): string[] {
+function listDts(dir: string): string[] {  // eslint-disable-line @typescript-eslint/no-unused-vars
     let dts: string[] = [];
-    for (let file of fs.readdirSync(dir)) {
+    for (const file of fs.readdirSync(dir)) {
         if (fs.lstatSync(path.join(dir, file)).isDirectory()) {
             dts = dts.concat(listDts(path.join(dir, file)));
         }
@@ -18,12 +18,12 @@ function listDts(dir: string): string[] {
 }
 
 
-let cmd = new Command("Compile target file", {
-    action: async (options: Record<string, string | boolean>, args: Record<string, string>) => {
-        let path_ = options["input"] as string;
+const cmd = new Command("Compile target file", {
+    action: async (options: Record<string, string | boolean>) => {
+        const path_ = options["input"] as string;
 
-        let parentDir = path.dirname(path_);
-        let outDir = path.join(parentDir, "build");
+        const parentDir = path.dirname(path_);
+        const outDir = path.join(parentDir, "build");
 
         compile(path_, outDir);
     },

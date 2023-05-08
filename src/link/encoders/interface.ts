@@ -5,10 +5,10 @@ export interface Serializer {
     reset(): void;
     put(c: number): boolean;
     finalize(channel: number): Buffer;
-};
+}
 
 export interface Packetizer {
     reset(): void;
     put(c: number): boolean;
     decode(): { channel: number, data: Buffer } | null;
-};
+}
