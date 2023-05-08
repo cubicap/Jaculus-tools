@@ -41,9 +41,11 @@ export class SerialStream implements Duplex {
                         rts: true,
                         dtr: true
                     });
-                    if (openCallbacks["open"]) {
-                        openCallbacks["open"]()
-                    }
+                    setTimeout(() => {
+                        if (openCallbacks["open"]) {
+                            openCallbacks["open"]()
+                        }
+                    }, 1000);
                 }, 10)
             }
         )
