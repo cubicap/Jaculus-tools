@@ -22,6 +22,7 @@ const cmd = new Command("Flash code to device (replace contents of ./code)", {
             logger.verbose("Error stopping device: " + err);
         });
 
+        logger.info("Deleting old code");
         await device.uploader.deleteDirectory("code").catch((err) => {
             logger.verbose("Error deleting directory: " + err);
         });
