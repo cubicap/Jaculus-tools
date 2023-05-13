@@ -21,6 +21,7 @@ const cmd = new Command("Write a file to device", {
             rl.setPrompt("");
             rl.on("line", (line: string) => {
                 if (line == "\\") {
+                    rl.removeAllListeners("close");
                     rl.close();
                     resolve(null);
                     return;
