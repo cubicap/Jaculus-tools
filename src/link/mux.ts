@@ -46,12 +46,15 @@ export class Mux {
     public constructor(PacketizerCtor: new () => Packetizer, SerializerCtor: new () => Serializer, stream: Duplex) {
         this._stream = stream;
         this._channels = {};
-        this._stream.onData((data: Buffer) => this.receive(data));
 
         this.PacketizerCtor = PacketizerCtor;
         this.SerializerCtor = SerializerCtor;
         this._packetizer = new this.PacketizerCtor();
         this._serializerCapacity = new this.SerializerCtor().capacity();
+    }
+
+    public start(): void {
+        this._stream.onData((data: Buffer) => this.receive(data));
     }
 
     private receive(data: Buffer): void {

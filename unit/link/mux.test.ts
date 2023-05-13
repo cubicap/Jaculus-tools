@@ -71,6 +71,9 @@ describe("Mux", () => {
         const mux1 = new Mux(CobsPacketizer, CobsSerializer, pipe1);
         const mux2 = new Mux(CobsPacketizer, CobsSerializer, pipe2);
 
+        mux1.start();
+        mux2.start();
+
         const capacity = mux1.maxPacketSize();
 
         // [comment, channel, data]

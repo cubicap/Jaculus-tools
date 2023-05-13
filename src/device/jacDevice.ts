@@ -43,6 +43,8 @@ export class JacDevice {
             new UnboundedBufferedInputPacketCommunicator(this._mux, 1),
             new TransparentOutputPacketCommunicator(this._mux, 1)
         );
+
+        this._mux.start();
     }
 
     public onError(callback: (err: any) => void): void {
