@@ -263,7 +263,7 @@ async function installUpstream(port: string, platform: string, idf: string, upst
         stderr.write(chalk.red("Please check the ESP-IDF error message\n"));
         stderr.write(chalk.red("Also check that the port is correct, the device is connected, device driver is installed and you have sufficient permissions\n"));
         stderr.write(chalk.red("You can reinitialize ESP-IDF with --idf=force-init or try redownloading it with --idf=force-download\n"));
-        stderr.write(chalk.red("You can also try redownloading Jaculus with --force-download-jac to fix any build errors\n"));
+        stderr.write(chalk.red("You can also try redownloading Jaculus with --upstream=force to fix any build errors\n"));
         throw 1;
     }
 }
@@ -296,9 +296,9 @@ const cmd = new Command("Install Jaculus to device", {
     options: {
         "platform": new Opt("Target platform for [" + platforms.join(", ") + "]"),
         "upstream": new Opt("Install Jaculus from upstream (requires idf to be set), [no, yes, force]", { defaultValue: "yes" }),
-        "idf": new Opt("Path to ESP-IDF 5.0 [<path>, download, force-dl, force-init]", { defaultValue: "download" }),
+        "idf": new Opt("Path to ESP-IDF >=5.0.1 [<path>, download, force-dl, force-init]", { defaultValue: "download" }),
     },
-    description: "Requires Python, git and device driver to be installed.\nIf --idf=download, it will be automatically downloaded and setup.\n"
+    description: "Requires Python, git and device driver to be installed.\nIf --idf=download, it will be automatically downloaded and installed.\n"
 });
 
 export default cmd;
