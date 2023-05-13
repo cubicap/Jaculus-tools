@@ -74,14 +74,14 @@ export async function getDevice(port: string | undefined, baudrate: string | und
 
     const where = await getPortSocket(port, socket);
 
-    let stream;
+    let device: JacDevice | undefined = undefined;
 
     if (where.type === "port") {
         const rate = parseInt(defaultBaudrate(baudrate));
         stdout.write("Connecting to serial at " + where.value + " at " + rate + " bauds... ");
 
         await new Promise((resolve, reject) => {
-            stream = new SerialStream(where.value, rate,{
+            device = new JacDevice(new SerialStream(where.value, rate,{
                 "error": (err) => {
                     stdout.write("Port error: " + err.message + "\n");
                     reject(1);
@@ -89,7 +89,7 @@ export async function getDevice(port: string | undefined, baudrate: string | und
                 "open": () => {
                     resolve(null);
                 }
-            });
+            }));
         });
     }
     else if (where.type === "socket") {
@@ -97,25 +97,26 @@ export async function getDevice(port: string | undefined, baudrate: string | und
         stdout.write("Connecting to socket at " + host + ":" + port + "... ");
 
         await new Promise((resolve, reject) => {
-            stream = new SocketStream(host, port, { "error": (err) => {
-                stdout.write("Socket error: " + err.message + "\n");
-                reject(1);
-            },
-            "open": () => {
-                resolve(null);
-            }
-            });
+            device = new JacDevice(new SocketStream(host, port, {
+                "error": (err) => {
+                    stdout.write("Socket error: " + err.message + "\n");
+                    reject(1);
+                },
+                "open": () => {
+                    resolve(null);
+                }
+            }));
         });
     }
 
-    if (!stream) {
+    if (!device) {
         stdout.write("Invalid port/socket");
         throw 1;
     }
+    device = device as JacDevice;
+
 
     stdout.write("Connected.\n\n");
-
-    const device = new JacDevice(stream);
 
     device.errorOutput.onData((data) => {
         logger.error("Device: " + data.toString());
