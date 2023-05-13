@@ -136,7 +136,7 @@ export class Controller {
         return new Promise((resolve, reject) => {
             this._onPacket = (cmd: ControllerCommand) => {
                 if (cmd == ControllerCommand.OK) {
-                    resolve();
+                    setTimeout(resolve, 10);
                 } else {
                     reject(cmd);
                 }
