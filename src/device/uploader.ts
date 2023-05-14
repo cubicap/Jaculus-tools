@@ -198,7 +198,6 @@ export class Uploader {
 
                     if (!last) {
                         await this.waitContinue(() => { (packet as Packet).send(); });
-                        // await new Promise((resolve) => { setTimeout(resolve, 100); });
                     }
                     else {
                         packet.send();
