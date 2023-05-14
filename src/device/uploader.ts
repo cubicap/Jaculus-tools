@@ -39,12 +39,13 @@ export class Uploader {
         });
     }
 
-    waitContinue(): Promise<void> {
+    waitContinue(callback: () => void): Promise<void> {
         return new Promise((resolve) => {
             this._onContinue = () => {
                 this._onContinue = undefined;
                 resolve();
             };
+            callback();
         });
     }
 
@@ -195,11 +196,14 @@ export class Uploader {
                         packet.put(data[offset]);
                     }
 
-                    packet.send();
-                    packet = null;
                     if (!last) {
-                        await this.waitContinue();
+                        await this.waitContinue(() => { (packet as Packet).send(); });
+                        // await new Promise((resolve) => { setTimeout(resolve, 100); });
                     }
+                    else {
+                        packet.send();
+                    }
+                    packet = null;
                 } while (offset < data.length);
             })();
         });
