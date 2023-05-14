@@ -296,7 +296,7 @@ const cmd = new Command("Install Jaculus to device", {
     options: {
         "platform": new Opt("Target platform for [" + platforms.join(", ") + "]"),
         "upstream": new Opt("Install Jaculus from upstream (requires idf to be set), [no, yes, force]", { defaultValue: "yes" }),
-        "idf": new Opt("Path to ESP-IDF >=5.0.1 [<path>, download, force-dl, force-init]", { defaultValue: "download" }),
+        "idf": new Opt("Path to ESP-IDF >=5.0.1 [<path>, download, force-download, force-init]", { defaultValue: "download" }),
     },
     description: "Requires Python, git and device driver to be installed.\nIf --idf=download, it will be automatically downloaded and installed.\n"
 });
