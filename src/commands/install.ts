@@ -2,13 +2,14 @@ import { Command, Opt } from "./lib/command.js";
 import path from "path";
 import fs from "fs";
 import https from "https";
-import unzipper from "unzipper";
 import { logger } from "../util/logger.js";
 import cliProgress from "cli-progress";
 import { stdout, stderr } from "process";
 import child_process from "child_process";
 import chalk from "chalk";
 import os from "os";
+import zip from "node-stream-zip";
+import { Stream } from "stream";
 
 
 const platforms = ["esp32", "esp32s3"];
@@ -49,6 +50,8 @@ function downloadAndExtract(url: string, target: string): Promise<void> {
 
             const totalSize = res.headers["content-length"] ? parseInt(res.headers["content-length"]) : undefined;
 
+            const zipPath = path.join(target, "tmp.zip");
+
             let bar: cliProgress.SingleBar | undefined;
 
             if (totalSize) {
@@ -72,27 +75,78 @@ function downloadAndExtract(url: string, target: string): Promise<void> {
                 bar.start(totalSize, 0);
             }
 
-
-            const extract = unzipper.Extract({ path: target });
-
-            res.on("data", (chunk) => {
-                if (bar) {
-                    bar.increment(chunk.length);
+            const file = fs.createWriteStream(zipPath);
+            res.pipe(new Stream.Transform({
+                transform: (chunk, encoding, callback) => {
+                    if (bar) {
+                        bar.increment(chunk.length);
+                    }
+                    callback(undefined, chunk);
                 }
-                extract.write(chunk);
-            });
-            extract.on("finish", () => {
+            })).pipe(file);
+
+            file.on("finish", () => {
                 if (bar) {
                     bar.stop();
                 }
-                extract.end();
-                resolve();
+                file.close();
+
+                extractZip(zipPath, target)
+                    .then(resolve)
+                    .catch(reject)
+                    .finally(() => {
+                        fs.rmSync(zipPath);
+                    });
             });
-            res.on("error", (err) => {
-                if (bar) {
-                    bar.stop();
-                }
+
+            file.on("error", (err) => {
                 reject(err);
+            });
+
+            res.on("error", (err) => {
+                reject(err);
+            });
+        });
+    });
+}
+
+function extractZip(zipPath: string, target: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const zipFile = new zip({
+            file: zipPath,
+            storeEntries: true,
+        });
+
+        zipFile.on("ready", () => {
+            const totalSize = zipFile.entriesCount;
+
+            const bar = new cliProgress.SingleBar({
+                progressCalculationRelative: true,
+                format: "{bar} {percentage}% | {value} / {total}",
+                etaBuffer: totalSize / 10,
+            }, cliProgress.Presets.legacy);
+            bar.start(totalSize, 0);
+
+            zipFile.on("extract", () => {
+                bar.increment();
+            });
+
+            zipFile.extract(null, target, (err) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+
+                zipFile.close((errC) => {
+                    if (errC) {
+                        reject(errC);
+                        return;
+                    }
+
+                    bar.update(totalSize);
+                    bar.stop();
+                    resolve();
+                });
             });
         });
     });
@@ -155,7 +209,9 @@ async function installUpstream(port: string, platform: string, idf: string, upst
         stdout.write(chalk.green("\nDownloading ESP-IDF to " + target + " (from " + idfUrl + ")\n"));
         await downloadAndExtract(idfUrl, target)
             .catch((err) => {
-            // TODO: remove downloaded file
+                if (fs.existsSync(idfPath)) {
+                    fs.rmSync(idfPath, { recursive: true, force: true });
+                }
                 stderr.write(chalk.red("Error downloading ESP-IDF: " + err + "\n"));
                 throw 1;
             });
@@ -215,7 +271,9 @@ async function installUpstream(port: string, platform: string, idf: string, upst
 
         await downloadAndExtract(jacUrl, getJaculusDataDir())
             .catch((err) => {
-            // TODO: remove downloaded files
+                if (fs.existsSync(jacPath)) {
+                    fs.rmSync(jacPath, { recursive: true, force: true });
+                }
                 stderr.write(chalk.red("Error downloading Jaculus: " + err + "\n"));
                 throw 1;
             });
