@@ -74,6 +74,7 @@ export class Mux {
                 }
                 else {
                     // XXX: handle invalid packet
+                    // ignored, UART seems stable enough, errors are only caused by garbage data (after reset...)
                 }
             }
         }
