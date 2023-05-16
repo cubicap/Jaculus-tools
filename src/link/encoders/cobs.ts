@@ -1,4 +1,4 @@
-import { Serializer, Packetizer } from "./interface";
+import { Serializer, Packetizer, Encoder } from "./interface";
 import crc16 from "crc/crc16";
 
 
@@ -20,9 +20,8 @@ class PacketStructure {
 
 }
 
-// TODO: change interface to be more like the C++ version
 
-export class CobsSerializer extends PacketStructure implements Serializer {
+class CobsSerializer extends PacketStructure implements Serializer {
     private _dataSize = 0;
 
     public capacity(): number {
@@ -78,7 +77,8 @@ export class CobsSerializer extends PacketStructure implements Serializer {
     }
 }
 
-export class CobsPacketizer extends PacketStructure implements Packetizer {
+
+class CobsPacketizer extends PacketStructure implements Packetizer {
     private length = 0;
 
     private expectedLength(): number {
@@ -142,3 +142,9 @@ export class CobsPacketizer extends PacketStructure implements Packetizer {
         };
     }
 }
+
+
+export const CobsEncoder: Encoder = {
+    serializer: CobsSerializer,
+    packetizer: CobsPacketizer
+};

@@ -1,9 +1,9 @@
 import { Packet, Consumer } from "./linkTypes.js";
 import { Mux } from "./mux.js";
-import { BufferedInputStreamCommunicator, BufferedInputPacketCommunicator, OutputStreamCommunicator, OutputPacketCommunicator } from "./communicator.js";
+import { InputStreamCommunicator, InputPacketCommunicator, OutputStreamCommunicator, OutputPacketCommunicator } from "./communicator.js";
 
 
-export class TransparentOutputStreamCommunicator implements OutputStreamCommunicator {
+export class MuxOutputStreamCommunicator implements OutputStreamCommunicator {
     private mux: Mux;
     private channel: number;
 
@@ -30,7 +30,7 @@ export class TransparentOutputStreamCommunicator implements OutputStreamCommunic
     }
 }
 
-export class UnboundedBufferedInputStreamCommunicator implements BufferedInputStreamCommunicator, Consumer {
+export class MuxInputStreamCommunicator implements InputStreamCommunicator, Consumer {
     private _onData?: (data: Buffer) => void;
 
     constructor(mux: Mux, channel: number) {
@@ -49,7 +49,7 @@ export class UnboundedBufferedInputStreamCommunicator implements BufferedInputSt
 }
 
 
-export class TransparentOutputPacketCommunicator implements OutputPacketCommunicator {
+export class MuxOutputPacketCommunicator implements OutputPacketCommunicator {
     private mux: Mux;
     private channel: number;
 
@@ -68,7 +68,7 @@ export class TransparentOutputPacketCommunicator implements OutputPacketCommunic
 }
 
 
-export class UnboundedBufferedInputPacketCommunicator implements BufferedInputPacketCommunicator, Consumer {
+export class MuxInputPacketCommunicator implements InputPacketCommunicator, Consumer {
     private _onData?: (data: Buffer) => void;
 
     constructor(mux: Mux, channel: number) {

@@ -1,4 +1,4 @@
-import { Packetizer, Serializer } from "./encoders/interface.js";
+import { Encoder, Packetizer, Serializer } from "./encoders/interface.js";
 import { Consumer, Packet } from "./linkTypes.js";
 import { Duplex, OutputStream } from "./stream.js";
 import { logger } from "../util/logger.js";
@@ -30,8 +30,7 @@ class MuxPacket implements Packet {
 
 
 export class Mux {
-    private PacketizerCtor: new () => Packetizer;
-    private SerializerCtor: new () => Serializer;
+    private encoder: Encoder;
 
     private _stream: Duplex;
 
@@ -43,14 +42,13 @@ export class Mux {
 
     public closed = false;
 
-    public constructor(PacketizerCtor: new () => Packetizer, SerializerCtor: new () => Serializer, stream: Duplex) {
+    public constructor(encoder: Encoder, stream: Duplex) {
         this._stream = stream;
         this._channels = {};
 
-        this.PacketizerCtor = PacketizerCtor;
-        this.SerializerCtor = SerializerCtor;
-        this._packetizer = new this.PacketizerCtor();
-        this._serializerCapacity = new this.SerializerCtor().capacity();
+        this.encoder = encoder;
+        this._packetizer = new this.encoder.packetizer();
+        this._serializerCapacity = new this.encoder.serializer().capacity();
     }
 
     public start(): void {
@@ -85,7 +83,7 @@ export class Mux {
         if (this.closed) {
             throw new Error("Mux is closed");
         }
-        return new MuxPacket(this._stream, channel, new this.SerializerCtor());
+        return new MuxPacket(this._stream, channel, new this.encoder.serializer());
     }
 
     public maxPacketSize(): number {

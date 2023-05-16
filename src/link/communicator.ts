@@ -5,7 +5,7 @@ export interface OutputStreamCommunicator {
     write(data: Buffer): void;
 }
 
-export interface BufferedInputStreamCommunicator {
+export interface InputStreamCommunicator {
     onData(callback: (data: Buffer) => void): void;
 }
 
@@ -15,6 +15,6 @@ export interface OutputPacketCommunicator {
     maxPacketSize(): number
 }
 
-export interface BufferedInputPacketCommunicator {
+export interface InputPacketCommunicator {
     onData(callback: (data: Buffer) => void): void;
 }

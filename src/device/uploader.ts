@@ -1,4 +1,4 @@
-import { BufferedInputPacketCommunicator, OutputPacketCommunicator } from "../link/communicator.js";
+import { InputPacketCommunicator, OutputPacketCommunicator } from "../link/communicator.js";
 import { Packet } from "../link/linkTypes.js";
 import * as fs from "fs";
 import { logger } from "../util/logger.js";
@@ -22,7 +22,7 @@ export enum UploaderCommand {
 }
 
 export class Uploader {
-    private _in: BufferedInputPacketCommunicator;
+    private _in: InputPacketCommunicator;
     private _out: OutputPacketCommunicator;
 
     private _onData?: (data: Buffer) => boolean;
@@ -31,7 +31,7 @@ export class Uploader {
     private _onError?: (cmd: UploaderCommand) => boolean;
     private _onContinue?: () => void;
 
-    public constructor(in_: BufferedInputPacketCommunicator, out: OutputPacketCommunicator) {
+    public constructor(in_: InputPacketCommunicator, out: OutputPacketCommunicator) {
         this._in = in_;
         this._out = out;
         this._in.onData((data: Buffer) => {

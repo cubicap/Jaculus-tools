@@ -5,7 +5,7 @@ import { Mux } from "../../src/link/mux.js";
 import Queue from "queue-fifo";
 import { Duplex } from "../../src/link/stream.js";
 import { Consumer } from "../../src/link/linkTypes.js";
-import { CobsPacketizer, CobsSerializer } from "../../src/link/encoders/cobs.js";
+import { CobsEncoder } from "../../src/link/encoders/cobs.js";
 
 chai.use(chaiBytes);
 const expect = chai.expect;
@@ -68,8 +68,8 @@ describe("Mux", () => {
         pipe1.onSend((data: Buffer) => pipe2.receive(data));
         pipe2.onSend((data: Buffer) => pipe1.receive(data));
 
-        const mux1 = new Mux(CobsPacketizer, CobsSerializer, pipe1);
-        const mux2 = new Mux(CobsPacketizer, CobsSerializer, pipe2);
+        const mux1 = new Mux(CobsEncoder, pipe1);
+        const mux2 = new Mux(CobsEncoder, pipe2);
 
         mux1.start();
         mux2.start();

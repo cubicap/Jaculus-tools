@@ -12,3 +12,8 @@ export interface Packetizer {
     put(c: number): boolean;
     decode(): { channel: number, data: Buffer } | null;
 }
+
+export interface Encoder {
+    packetizer: new () => Packetizer;
+    serializer: new () => Serializer;
+}

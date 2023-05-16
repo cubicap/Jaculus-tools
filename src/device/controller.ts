@@ -1,4 +1,4 @@
-import { BufferedInputPacketCommunicator, OutputPacketCommunicator } from "../link/communicator.js";
+import { InputPacketCommunicator, OutputPacketCommunicator } from "../link/communicator.js";
 import { logger } from "../util/logger.js";
 
 
@@ -17,12 +17,12 @@ export enum ControllerCommand {
 
 
 export class Controller {
-    private _in: BufferedInputPacketCommunicator;
+    private _in: InputPacketCommunicator;
     private _out: OutputPacketCommunicator;
 
     private _onPacket?: (cmd: ControllerCommand, data: Buffer) => boolean;
 
-    public constructor(in_: BufferedInputPacketCommunicator, out: OutputPacketCommunicator) {
+    public constructor(in_: InputPacketCommunicator, out: OutputPacketCommunicator) {
         this._in = in_;
         this._out = out;
         this._in.onData((data: Buffer) => {

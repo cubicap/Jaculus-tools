@@ -1,7 +1,7 @@
 import "mocha";
 import chai from "chai";
 import chaiBytes from "chai-bytes";
-import { CobsPacketizer, CobsSerializer } from "../../src/link/encoders/cobs.js";
+import { CobsEncoder } from "../../src/link/encoders/cobs.js";
 
 chai.use(chaiBytes);
 const expect = chai.expect;
@@ -13,6 +13,9 @@ function rangeArray(start: number, count: number): number[] {
 function toBuffer(data: Array<number|string>): Buffer {
     return Buffer.from(data.map(d => typeof d == "string" ? d.charCodeAt(0) : d));
 }
+
+const CobsSerializer = CobsEncoder.serializer;
+const CobsPacketizer = CobsEncoder.packetizer;
 
 describe("Cobs", () => {
     describe("Serialize", () => {

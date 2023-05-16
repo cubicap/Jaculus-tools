@@ -1,47 +1,47 @@
 import { Mux } from "../link/mux.js";
 import { Duplex } from "../link/stream.js";
 import {
-    TransparentOutputPacketCommunicator, UnboundedBufferedInputPacketCommunicator,
-    TransparentOutputStreamCommunicator, UnboundedBufferedInputStreamCommunicator
+    MuxOutputPacketCommunicator, MuxInputPacketCommunicator,
+    MuxOutputStreamCommunicator, MuxInputStreamCommunicator
 } from "../link/muxCommunicator.js";
 import { Uploader } from "./uploader.js";
 import { Controller } from "./controller.js";
-import { CobsPacketizer, CobsSerializer } from "../link/encoders/cobs.js";
+import { CobsEncoder } from "../link/encoders/cobs.js";
 
 
 export class JacDevice {
     private _mux: Mux;
 
-    public programOutput: UnboundedBufferedInputStreamCommunicator;
-    public programInput: TransparentOutputStreamCommunicator;
-    public programError: UnboundedBufferedInputStreamCommunicator;
+    public programOutput: MuxInputStreamCommunicator;
+    public programInput: MuxOutputStreamCommunicator;
+    public programError: MuxInputStreamCommunicator;
 
-    public errorOutput: UnboundedBufferedInputStreamCommunicator;
-    public logOutput: UnboundedBufferedInputStreamCommunicator;
-    public debugOutput: UnboundedBufferedInputStreamCommunicator;
+    public errorOutput: MuxInputStreamCommunicator;
+    public logOutput: MuxInputStreamCommunicator;
+    public debugOutput: MuxInputStreamCommunicator;
 
     public controller: Controller;
     public uploader: Uploader;
 
     public constructor(connection: Duplex) {
-        this._mux = new Mux(CobsPacketizer, CobsSerializer, connection);
+        this._mux = new Mux(CobsEncoder, connection);
 
-        this.programOutput = new UnboundedBufferedInputStreamCommunicator(this._mux, 16);
-        this.programInput = new TransparentOutputStreamCommunicator(this._mux, 16);
-        this.programError = new UnboundedBufferedInputStreamCommunicator(this._mux, 17);
+        this.programOutput = new MuxInputStreamCommunicator(this._mux, 16);
+        this.programInput = new MuxOutputStreamCommunicator(this._mux, 16);
+        this.programError = new MuxInputStreamCommunicator(this._mux, 17);
 
-        this.errorOutput = new UnboundedBufferedInputStreamCommunicator(this._mux, 255);
-        this.logOutput = new UnboundedBufferedInputStreamCommunicator(this._mux, 253);
-        this.debugOutput = new UnboundedBufferedInputStreamCommunicator(this._mux, 251);
+        this.errorOutput = new MuxInputStreamCommunicator(this._mux, 255);
+        this.logOutput = new MuxInputStreamCommunicator(this._mux, 253);
+        this.debugOutput = new MuxInputStreamCommunicator(this._mux, 251);
 
         this.controller = new Controller(
-            new UnboundedBufferedInputPacketCommunicator(this._mux, 0),
-            new TransparentOutputPacketCommunicator(this._mux, 0)
+            new MuxInputPacketCommunicator(this._mux, 0),
+            new MuxOutputPacketCommunicator(this._mux, 0)
         );
 
         this.uploader = new Uploader(
-            new UnboundedBufferedInputPacketCommunicator(this._mux, 1),
-            new TransparentOutputPacketCommunicator(this._mux, 1)
+            new MuxInputPacketCommunicator(this._mux, 1),
+            new MuxOutputPacketCommunicator(this._mux, 1)
         );
 
         this._mux.start();
