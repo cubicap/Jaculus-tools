@@ -1,7 +1,7 @@
-# Jaculus-tools - Companion app/library for [Jaculus](https://github.com/cubicap/Jaculus)
+# Jaculus-tools - Companion application/library for Jaculus
 
 Jaculus tools allow for uploading and downloading files, as well as controlling the
-running Jaculus machine.
+running Jaculus runtime on the device.
 
 ## Setup
 
@@ -27,9 +27,9 @@ To see help for a specific command, use:
 
     $ jac help <command>
 
-To connect to the device using serial port, correct driver must be installed - most likely [CP210x USB to UART Bridge](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers).
+To connect to the device using serial port, the correct driver must be installed - most likely [CP210x USB to UART Bridge](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers).
 
-### Installing Jaculus to the device
+### Installing Jaculus firmware to the device
 
 On Windows, this step requires Python 3 and git to be installed
 
@@ -42,6 +42,7 @@ To install Jaculus to the device, use:
 You can specify existing ESP-IDF installation using `--idf` option (requires ESP-IDF version 5.0):
 
     $ jac install --port <port> --platform <platform> --idf <path>
+
 
 ### Connecting to the device
 
@@ -63,23 +64,25 @@ To tunnel serial port over TCP, use:
 
     $ jac serial-socket --port <port> --socket <port>
 
+
 ### Creating and running TypeScript programs
 
-Create a new TypeScript project, from the template provided in the `resources` directory.
+Create a new TypeScript project. A template project for ESP32 with examples is available on [GitHub](https://github.com/cubicap/Jaculus-esp32/tree/master/ts-examples).
 
 Compile the project to JavaScript:
 
-    $ jac build
+    jac build
 
 The output will be written to the `build` directory.
 
 Flash the JavaScript program to the device:
 
-    $ jac flash
+    jac flash
 
 After flashing, the program will be immediately executed on the device.
 
-The entry point of the program is the `index.ts` file in the root of the project.
+The entry point of the program is the `index.ts` file at the root of the project.
+
 
 ### Creating and running JavaScript programs
 
@@ -93,6 +96,7 @@ After flashing, the program will be immediately executed on the device.
 
 The entry point of the program is the `index.js` file in the source directory.
 
+
 ### Controlling the device and monitoring its output
 
 To control the device, use the following commands:
@@ -101,6 +105,16 @@ To control the device, use the following commands:
     $ jac stop
     $ jac status
     $ jac monitor
+
+
+## Updating the firmware
+
+The CLI tool caches the firmware build in the `~/.jaculus` directory for faster flashing.
+
+To update the firmware, force the tool to download the latest version:
+
+    jac install --port <port> --platform <platform> --upstream force
+
 
 # License
 
