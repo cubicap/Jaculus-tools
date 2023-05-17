@@ -59,21 +59,21 @@ export function compile(input: string, outDir: string, err: Writable = stderr): 
     const program = ts.createProgram(fileNames, options);
     const emitResult = program.emit();
 
-    const allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
+    const diagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
 
-    allDiagnostics.forEach(diagnostic => {
+    for (const diagnostic of diagnostics) {
         if (diagnostic.file) {
             if (!diagnostic.start) {
                 throw new Error("Diagnostic has no start");
             }
             const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-            printMessage(`${diagnostic.file.fileName} (${line + 1},${character + 1}): `, err);
+            printMessage(`${diagnostic.file.fileName} (${line + 1}:${character + 1}): `, err);
             printMessage(diagnostic.messageText, err);
         }
         else {
             printMessage(diagnostic.messageText, err);
         }
-    });
+    }
 
     if (emitResult.emitSkipped) {
         throw new Error("Compilation failed");
