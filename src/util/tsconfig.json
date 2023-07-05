@@ -4,14 +4,5 @@
         "logger.ts",
         "timeoutPromise.ts",
     ],
-    "references": [],
-    "paths": {},
-    "compilerOptions": {
-        "target": "es2021",
-        "module": "es2020",
-        "moduleResolution": "node",
-        "sourceMap": true,
-        "resolveJsonModule": true,
-        "esModuleInterop": true,
-    }
+    "references": []
 }
