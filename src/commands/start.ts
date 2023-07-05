@@ -17,7 +17,7 @@ const cmd = new Command("Start a program", {
             throw 1;
         });
 
-        const cmd = await device.controller.start(entry).catch((err) => {
+        await device.controller.start(entry).catch((err) => {
             stdout.write("Error: " + err + "\n");
             throw 1;
         });
@@ -27,7 +27,7 @@ const cmd = new Command("Start a program", {
             throw 1;
         });
 
-        stdout.write(cmd.toString() + "\n");
+        stdout.write("Started\n");
     },
     options: {
         "entry": new Opt("Remote file to run", { defaultValue: "index.js", required: true }),

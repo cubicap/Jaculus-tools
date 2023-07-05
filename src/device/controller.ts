@@ -18,6 +18,19 @@ export enum ControllerCommand {
     LOCK_NOT_OWNED = 0x22,
 }
 
+export const ControllerCommandStrings: Record<ControllerCommand, string> = {
+    [ControllerCommand.START]: "START",
+    [ControllerCommand.STOP]: "STOP",
+    [ControllerCommand.STATUS]: "STATUS",
+    [ControllerCommand.VERSION]: "VERSION",
+    [ControllerCommand.LOCK]: "LOCK",
+    [ControllerCommand.UNLOCK]: "UNLOCK",
+    [ControllerCommand.FORCE_UNLOCK]: "FORCE_UNLOCK",
+    [ControllerCommand.OK]: "OK",
+    [ControllerCommand.ERROR]: "ERROR",
+    [ControllerCommand.LOCK_NOT_OWNED]: "LOCK_NOT_OWNED",
+};
+
 
 export class Controller {
     private _in: InputPacketCommunicator;
@@ -51,14 +64,14 @@ export class Controller {
         return false;
     }
 
-    public start(path: string): Promise<ControllerCommand> {
+    public start(path: string): Promise<void> {
         logger.verbose("Starting program: " + path);
         return new TimeoutPromise(TIMEOUT_MS, (resolve, reject) => {
             this._onPacket = (cmd: ControllerCommand) => {
                 if (cmd == ControllerCommand.OK) {
-                    resolve(cmd);
+                    resolve();
                 } else {
-                    reject(cmd);
+                    reject(ControllerCommandStrings[cmd]);
                 }
                 return true;
             };
@@ -74,14 +87,14 @@ export class Controller {
         });
     }
 
-    public stop(): Promise<ControllerCommand> {
+    public stop(): Promise<void> {
         logger.verbose("Stopping program");
         return new TimeoutPromise(TIMEOUT_MS, (resolve, reject) => {
             this._onPacket = (cmd: ControllerCommand) => {
                 if (cmd == ControllerCommand.OK) {
-                    resolve(cmd);
+                    resolve();
                 } else {
-                    reject(cmd);
+                    reject(ControllerCommandStrings[cmd]);
                 }
                 return true;
             };
@@ -105,7 +118,7 @@ export class Controller {
                         status: data.slice(2).toString("utf8"),
                     });
                 } else {
-                    reject(cmd);
+                    reject(ControllerCommandStrings[cmd]);
                 }
                 return true;
             };
@@ -133,7 +146,7 @@ export class Controller {
 
                     resolve(res);
                 } else {
-                    reject(cmd);
+                    reject(ControllerCommandStrings[cmd]);
                 }
                 return true;
             };
@@ -153,7 +166,7 @@ export class Controller {
                 if (cmd == ControllerCommand.OK) {
                     setTimeout(resolve, 10);
                 } else {
-                    reject(cmd);
+                    reject(ControllerCommandStrings[cmd]);
                 }
                 return true;
             };
@@ -173,7 +186,7 @@ export class Controller {
                 if (cmd == ControllerCommand.OK) {
                     resolve();
                 } else {
-                    reject(cmd);
+                    reject(ControllerCommandStrings[cmd]);
                 }
                 return true;
             };
@@ -193,7 +206,7 @@ export class Controller {
                 if (cmd == ControllerCommand.OK) {
                     resolve();
                 } else {
-                    reject(cmd);
+                    reject(ControllerCommandStrings[cmd]);
                 }
                 return true;
             };

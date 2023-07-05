@@ -21,6 +21,22 @@ export enum UploaderCommand {
     LOCK_NOT_OWNED = 0x24,
 }
 
+export const UploaderCommandStrings: Record<UploaderCommand, string> = {
+    [UploaderCommand.READ_FILE]: "READ_FILE",
+    [UploaderCommand.WRITE_FILE]: "WRITE_FILE",
+    [UploaderCommand.DELETE_FILE]: "DELETE_FILE",
+    [UploaderCommand.LIST_DIR]: "LIST_DIR",
+    [UploaderCommand.CREATE_DIR]: "CREATE_DIR",
+    [UploaderCommand.DELETE_DIR]: "DELETE_DIR",
+    [UploaderCommand.HAS_MORE_DATA]: "HAS_MORE_DATA",
+    [UploaderCommand.LAST_DATA]: "LAST_DATA",
+    [UploaderCommand.OK]: "OK",
+    [UploaderCommand.ERROR]: "ERROR",
+    [UploaderCommand.NOT_FOUND]: "NOT_FOUND",
+    [UploaderCommand.CONTINUE]: "CONTINUE",
+    [UploaderCommand.LOCK_NOT_OWNED]: "LOCK_NOT_OWNED",
+};
+
 export class Uploader {
     private _in: InputPacketCommunicator;
     private _out: OutputPacketCommunicator;
@@ -142,7 +158,7 @@ export class Uploader {
                 return true;
             };
             this._onError = (cmd: UploaderCommand) => {
-                reject(cmd);
+                reject(UploaderCommandStrings[cmd]);
                 return true;
             };
             const packet = this._out.buildPacket();
@@ -163,7 +179,7 @@ export class Uploader {
             };
 
             this._onError = (cmd: UploaderCommand) => {
-                reject(cmd);
+                reject(UploaderCommandStrings[cmd]);
                 return true;
             };
 
@@ -217,7 +233,7 @@ export class Uploader {
             };
 
             this._onError = (cmd: UploaderCommand) => {
-                reject(cmd);
+                reject(UploaderCommandStrings[cmd]);
                 return true;
             };
 
@@ -270,7 +286,7 @@ export class Uploader {
                 return true;
             };
             this._onError = (cmd: UploaderCommand) => {
-                reject(cmd);
+                reject(UploaderCommandStrings[cmd]);
                 return true;
             };
             const packet = this._out.buildPacket();
@@ -294,7 +310,7 @@ export class Uploader {
             };
 
             this._onError = (cmd: UploaderCommand) => {
-                reject(cmd);
+                reject(UploaderCommandStrings[cmd]);
                 return true;
             };
 
@@ -316,7 +332,7 @@ export class Uploader {
             };
 
             this._onError = (cmd: UploaderCommand) => {
-                reject(cmd);
+                reject(UploaderCommandStrings[cmd]);
                 return true;
             };
 
@@ -335,7 +351,7 @@ export class Uploader {
             const files = fs.readdirSync(from);
 
             await this.createDirectory(to).catch((cmd: UploaderCommand) => {
-                throw "Failed to create directory (" + cmd + ")";
+                throw "Failed to create directory: " + UploaderCommandStrings[cmd];
             });
             for (const file of files) {
                 await this.upload(path.join(from, file), to + "/" + file).catch((err) => {
@@ -348,7 +364,7 @@ export class Uploader {
             const data = fs.readFileSync(from);
 
             await this.writeFile(to, data).catch((cmd: UploaderCommand) => {
-                throw "Failed to write file (" + to + "): " + cmd;
+                throw "Failed to write file (" + to + "): " + UploaderCommandStrings[cmd];
             });
             return UploaderCommand.OK;
         }
@@ -373,7 +389,7 @@ export class Uploader {
         logger.info("Pulling " + from + " to " + to);
 
         const data = await this.readFile(from).catch((cmd: UploaderCommand) => {
-            throw "Failed to read file (" + cmd + ")";
+            throw "Failed to read file: " + UploaderCommandStrings[cmd];
         });
 
         fs.writeFileSync(to, data);
@@ -385,7 +401,7 @@ export class Uploader {
         logger.info("Pulling " + from + " to " + to);
 
         const files = await this.listDirectory(from).catch((cmd: UploaderCommand) => {
-            throw "Failed to list directory (" + cmd + ")";
+            throw "Failed to list directory: " + UploaderCommandStrings[cmd];
         });
 
         if (!fs.existsSync(to)) {
@@ -418,8 +434,8 @@ export class Uploader {
     public async pull(from: string, to: string): Promise<UploaderCommand> {
         logger.verbose("Pulling " + from + " to " + to);
 
-        const [, isDir, ] = await this.listDirectory(from).catch((cmd: UploaderCommand) => {
-            throw "Failed to get file type (" + cmd + ")";
+        const [, isDir, ] = await this.listDirectory(from).catch((err) => {
+            throw "Failed to get file type: " + err;
         });
 
         if (isDir) {

@@ -16,7 +16,7 @@ const cmd = new Command("Stop a program", {
             throw 1;
         });
 
-        const cmd = await device.controller.stop().catch((err) => {
+        await device.controller.stop().catch((err) => {
             stdout.write("Error: " + err + "\n");
             throw 1;
         });
@@ -26,7 +26,7 @@ const cmd = new Command("Stop a program", {
             throw 1;
         });
 
-        stdout.write(cmd.toString() + "\n");
+        stdout.write("Stopped\n");
     },
     chainable: true
 });
