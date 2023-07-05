@@ -61,6 +61,8 @@ export function compile(input: string, outDir: string, err: Writable = stderr): 
 
     const diagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
 
+    const error = diagnostics.some(diagnostic => diagnostic.category === ts.DiagnosticCategory.Error);
+
     for (const diagnostic of diagnostics) {
         if (diagnostic.file) {
             if (!diagnostic.start) {
@@ -79,5 +81,5 @@ export function compile(input: string, outDir: string, err: Writable = stderr): 
         throw new Error("Compilation failed");
     }
 
-    return emitResult.emitSkipped;
+    return !emitResult.emitSkipped && !error;
 }

@@ -25,7 +25,13 @@ const cmd = new Command("Compile target file", {
         const parentDir = path.dirname(path_);
         const outDir = path.join(parentDir, "build");
 
-        compile(path_, outDir);
+        if (compile(path_, outDir)) {
+            console.log("Compiled successfully");
+        }
+        else {
+            console.log("Compilation failed");
+            throw 1;
+        }
     },
     options: {
         "input": new Opt("The input directory", { required: true, defaultValue: "./" }),
