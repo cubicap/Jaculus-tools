@@ -2,6 +2,7 @@
     "extends": "../../tsconfig-base.json",
     "files": [
         "logger.ts",
+        "timeoutPromise.ts",
     ],
     "references": [],
     "paths": {},

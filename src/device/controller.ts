@@ -1,6 +1,9 @@
 import { InputPacketCommunicator, OutputPacketCommunicator } from "../link/communicator.js";
 import { logger } from "../util/logger.js";
+import { TimeoutPromise } from "../util/timeoutPromise.js";
 
+
+const TIMEOUT_MS = 5000;
 
 export enum ControllerCommand {
     START = 0x01,
@@ -21,6 +24,10 @@ export class Controller {
     private _out: OutputPacketCommunicator;
 
     private _onPacket?: (cmd: ControllerCommand, data: Buffer) => boolean;
+
+    private cancel(): void {
+        this._onPacket = undefined;
+    }
 
     public constructor(in_: InputPacketCommunicator, out: OutputPacketCommunicator) {
         this._in = in_;
@@ -46,7 +53,7 @@ export class Controller {
 
     public start(path: string): Promise<ControllerCommand> {
         logger.verbose("Starting program: " + path);
-        return new Promise((resolve, reject) => {
+        return new TimeoutPromise(TIMEOUT_MS, (resolve, reject) => {
             this._onPacket = (cmd: ControllerCommand) => {
                 if (cmd == ControllerCommand.OK) {
                     resolve(cmd);
@@ -62,12 +69,14 @@ export class Controller {
                 packet.put(c.charCodeAt(0));
             }
             packet.send();
+        }, () => {
+            this.cancel();
         });
     }
 
     public stop(): Promise<ControllerCommand> {
         logger.verbose("Stopping program");
-        return new Promise((resolve, reject) => {
+        return new TimeoutPromise(TIMEOUT_MS, (resolve, reject) => {
             this._onPacket = (cmd: ControllerCommand) => {
                 if (cmd == ControllerCommand.OK) {
                     resolve(cmd);
@@ -80,12 +89,14 @@ export class Controller {
             const packet = this._out.buildPacket();
             packet.put(ControllerCommand.STOP);
             packet.send();
+        }, () => {
+            this.cancel();
         });
     }
 
     public status(): Promise<{ running: boolean, exitCode?: number, status: string }> {
         logger.verbose("Getting status");
-        return new Promise((resolve, reject) => {
+        return new TimeoutPromise(TIMEOUT_MS, (resolve, reject) => {
             this._onPacket = (cmd: ControllerCommand, data: Buffer) => {
                 if (cmd == ControllerCommand.STATUS && data.length > 0) {
                     resolve({
@@ -102,12 +113,14 @@ export class Controller {
             const packet = this._out.buildPacket();
             packet.put(ControllerCommand.STATUS);
             packet.send();
+        }, () => {
+            this.cancel();
         });
     }
 
     public version(): Promise<string[]> {
         logger.verbose("Getting version");
-        return new Promise((resolve, reject) => {
+        return new TimeoutPromise(TIMEOUT_MS, (resolve, reject) => {
             this._onPacket = (cmd: ControllerCommand, data: Buffer) => {
                 if (cmd == ControllerCommand.VERSION && data.length > 0) {
                     const res = [];
@@ -128,12 +141,14 @@ export class Controller {
             const packet = this._out.buildPacket();
             packet.put(ControllerCommand.VERSION);
             packet.send();
+        }, () => {
+            this.cancel();
         });
     }
 
     public lock(): Promise<void> {
         logger.verbose("Locking controller");
-        return new Promise((resolve, reject) => {
+        return new TimeoutPromise(TIMEOUT_MS, (resolve, reject) => {
             this._onPacket = (cmd: ControllerCommand) => {
                 if (cmd == ControllerCommand.OK) {
                     setTimeout(resolve, 10);
@@ -146,12 +161,14 @@ export class Controller {
             const packet = this._out.buildPacket();
             packet.put(ControllerCommand.LOCK);
             packet.send();
+        }, () => {
+            this.cancel();
         });
     }
 
     public unlock(): Promise<void> {
         logger.verbose("Unlocking controller");
-        return new Promise((resolve, reject) => {
+        return new TimeoutPromise(TIMEOUT_MS, (resolve, reject) => {
             this._onPacket = (cmd: ControllerCommand) => {
                 if (cmd == ControllerCommand.OK) {
                     resolve();
@@ -164,12 +181,14 @@ export class Controller {
             const packet = this._out.buildPacket();
             packet.put(ControllerCommand.UNLOCK);
             packet.send();
+        }, () => {
+            this.cancel();
         });
     }
 
     public forceUnlock(): Promise<void> {
         logger.verbose("Force unlocking controller");
-        return new Promise((resolve, reject) => {
+        return new TimeoutPromise(TIMEOUT_MS, (resolve, reject) => {
             this._onPacket = (cmd: ControllerCommand) => {
                 if (cmd == ControllerCommand.OK) {
                     resolve();
@@ -182,6 +201,8 @@ export class Controller {
             const packet = this._out.buildPacket();
             packet.put(ControllerCommand.FORCE_UNLOCK);
             packet.send();
+        }, () => {
+            this.cancel();
         });
     }
 }
