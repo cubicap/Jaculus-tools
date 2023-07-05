@@ -2,12 +2,15 @@ import { Command, Env } from "./lib/command.js";
 import { stdout } from "process";
 import { getDevice } from "./util.js";
 
+import { version } from "../project/version.js";
 
 const cmd = new Command("Get version of device firmware", {
     action: async (options: Record<string, string | boolean>, args: Record<string, string>, env: Env) => {
         const port = options["port"] as string;
         const baudrate = options["baudrate"] as string;
         const socket = options["socket"] as string;
+
+        stdout.write("Jaculus-tools version:\n  " + version + "\n\n");
 
         const device = await getDevice(port, baudrate, socket, env);
 

@@ -12,6 +12,7 @@
     },
     "license": "GPL-3.0-only",
     "scripts": {
+        "prebuild": "node -p \"'export const version = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/project/version.ts",
         "build": "tsc --build",
         "clean": "tsc --build --clean",
         "lint": "eslint --ext .ts src unit",
