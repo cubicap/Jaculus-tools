@@ -174,10 +174,10 @@ async function installUpstream(port: string, platform: string, idf: string, upst
         throw 1;
     }
 
-    const idfVersion = "esp-idf-v5.0.1";
+    const idfVersion = "esp-idf-v5.1";
 
     const idfPath = getIdfPath(idfVersion, idf);
-    const idfUrl = "https://github.com/espressif/esp-idf/releases/download/v5.0.1/" + idfVersion + ".zip";
+    const idfUrl = "https://github.com/espressif/esp-idf/releases/download/v5.1/" + idfVersion + ".zip";
 
     const jacDir = "Jaculus-esp32-master";
     const jacUrl = "https://github.com/cubicap/Jaculus-esp32/archive/refs/heads/master.zip";
@@ -354,7 +354,7 @@ const cmd = new Command("Install Jaculus to device", {
     options: {
         "platform": new Opt("Target platform for [" + platforms.join(", ") + "]"),
         "upstream": new Opt("Install Jaculus from upstream (requires idf to be set), [no, yes, force]", { defaultValue: "yes" }),
-        "idf": new Opt("Path to ESP-IDF >=5.0.1 [<path>, download, force-download, force-init]", { defaultValue: "download" }),
+        "idf": new Opt("Path to ESP-IDF >=5.1 [<path>, download, force-download, force-init]", { defaultValue: "download" }),
     },
     description: "Requires Python, git and device driver to be installed.\nIf --idf=download, it will be automatically downloaded and installed.\n"
 });
