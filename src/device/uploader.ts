@@ -12,6 +12,7 @@ export enum UploaderCommand {
     LIST_DIR = 0x04,
     CREATE_DIR = 0x05,
     DELETE_DIR = 0x06,
+    FORMAT_STORAGE = 0x07,
     HAS_MORE_DATA = 0x10,
     LAST_DATA = 0x11,
     OK = 0x20,
@@ -28,6 +29,7 @@ export const UploaderCommandStrings: Record<UploaderCommand, string> = {
     [UploaderCommand.LIST_DIR]: "LIST_DIR",
     [UploaderCommand.CREATE_DIR]: "CREATE_DIR",
     [UploaderCommand.DELETE_DIR]: "DELETE_DIR",
+    [UploaderCommand.FORMAT_STORAGE]: "FORMAT_STORAGE",
     [UploaderCommand.HAS_MORE_DATA]: "HAS_MORE_DATA",
     [UploaderCommand.LAST_DATA]: "LAST_DATA",
     [UploaderCommand.OK]: "OK",
@@ -443,5 +445,25 @@ export class Uploader {
         }
 
         return this.pullFile(from, to);
+    }
+
+    public formatStorage(): Promise<UploaderCommand> {
+        logger.verbose("Formatting storage");
+        return new Promise((resolve, reject) => {
+            this._onOk = () => {
+                resolve(UploaderCommand.OK);
+                return true;
+            };
+
+            this._onError = (cmd: UploaderCommand) => {
+                reject(UploaderCommandStrings[cmd]);
+                return true;
+            };
+
+            const packet = this._out.buildPacket();
+            packet.put(UploaderCommand.FORMAT_STORAGE);
+            packet.put(UploaderCommand.OK);
+            packet.send();
+        });
     }
 }
