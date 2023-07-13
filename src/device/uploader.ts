@@ -490,7 +490,7 @@ export class Uploader {
                         const name = buffer.toString("utf8", 0, buffer.indexOf(0));
                         const sha1 = data.toString("hex", i + 1, i + 21);
                         i += 20;
-                        logger.verbose(`${name} ${sha1}`)
+                        logger.verbose(`${name} ${sha1}`);
                         result.push([name, sha1]);
                         buffer.fill(0);
                         bufferIn = 0;

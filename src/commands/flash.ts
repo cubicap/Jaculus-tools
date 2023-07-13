@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import crypto from "crypto"
+import crypto from "crypto";
 
 import { Command, Env, Opt } from "./lib/command.js";
 import { stdout } from "process";
@@ -11,7 +11,7 @@ enum SyncAction {
     Noop,
     Delete,
     Upload,
-};
+}
 
 interface RemoteFileInfo {
     sha1: string
@@ -22,19 +22,19 @@ async function fileSha1(path: string): Promise<string> {
     return new Promise((resolve, reject) => {
         const hasher = crypto.createHash("sha1");
 
-        const stream = fs.createReadStream(path)
+        const stream = fs.createReadStream(path);
         stream.on("data", (data) => {
             hasher.update(data);
-        })
+        });
         stream.on("error", (err) => {
             stream.close();
             reject(err);
-        })
+        });
         stream.on("end", () => {
-            resolve(hasher.digest("hex"))
+            resolve(hasher.digest("hex"));
             stream.close();
-        })
-    })
+        });
+    });
 }
 
 async function uploadIfDifferent(uploader: Uploader, remoteHashes: [string, string][], from: string, to: string) {
@@ -47,81 +47,81 @@ async function uploadIfDifferent(uploader: Uploader, remoteHashes: [string, stri
         return [name, {
             sha1: sha1,
             action: SyncAction.Delete,
-        }]
-    }))
+        }];
+    }));
 
-    const dirs: string[] = [from]
+    const dirs: string[] = [from];
     while (dirs.length > 0) {
-        const cur_dir = dirs.pop()!;
-        const rel_cur_dir = cur_dir.substring(from.length +1)
+        const cur_dir = dirs.pop() as string;
+        const rel_cur_dir = cur_dir.substring(from.length +1);
 
         const entries = fs.readdirSync(cur_dir, { withFileTypes: true });
         for (const e of entries) {
             if (e.isFile()) {
                 const key = rel_cur_dir ? `${rel_cur_dir}/${e.name}` : e.name;
-                const sha1 = await fileSha1(`${cur_dir}/${e.name}`)
-                const info = filesInfo[key]
+                const sha1 = await fileSha1(`${cur_dir}/${e.name}`);
+                const info = filesInfo[key];
                 if (info === undefined) {
                     filesInfo[key] = {
                         sha1: sha1,
                         action: SyncAction.Upload,
-                    }
-                    logger.verbose(`${key} is new, will upload`)
+                    };
+                    logger.verbose(`${key} is new, will upload`);
                 } else if (info.sha1 === sha1) {
-                    info.action = SyncAction.Noop
-                    logger.verbose(`${key} has same sha1 on device and on disk, skipping`)
+                    info.action = SyncAction.Noop;
+                    logger.verbose(`${key} has same sha1 on device and on disk, skipping`);
                 }  else  {
-                    info.action = SyncAction.Upload
-                    logger.verbose(`${key} is different, will upload`)
+                    info.action = SyncAction.Upload;
+                    logger.verbose(`${key} is different, will upload`);
                 }
             } else if (e.isDirectory()) {
-                dirs.push(`${cur_dir}/${e.name}`)
+                dirs.push(`${cur_dir}/${e.name}`);
             }
         }
     }
 
     const existingFolders = new Set<string>();
-    let countUploaded = 0
-    let countDeleted = 0
+    let countUploaded = 0;
+    let countDeleted = 0;
 
     for (const [rel_path, info] of Object.entries(filesInfo)) {
-        const src_path = `${from}/${rel_path}`
-        const dest_path = `${to}/${rel_path}`
+        const src_path = `${from}/${rel_path}`;
+        const dest_path = `${to}/${rel_path}`;
         switch (info.action) {
-            case SyncAction.Noop:
-                break
-            case SyncAction.Delete:
-                try {
-                    await uploader.deleteFile(dest_path)
-                } catch (err) {
-                    logger.verbose(`Error deleting file ${dest_path}: ${err}`);
-                }
-                ++countDeleted;
-                break;
-            case SyncAction.Upload: {
-                const parts = dest_path.split("/")
-                let cur_dir_part = ""
-                for (const p of parts.slice(0, parts.length - 1)) {
-                    if (p === "") {
-                        continue
-                    }
-                    const abs_p = cur_dir_part + p
-                    if (!existingFolders.has(abs_p)) {
-                        await uploader.createDirectory(abs_p).catch((err) => {
-                            logger.error("Error creating directory: " + err);
-                        });
-                        existingFolders.add(abs_p)
-                    }
-                    cur_dir_part += `${p}/`
-                }
-
-                await uploader.upload(src_path, dest_path)
-                ++countUploaded;
-                break
+        case SyncAction.Noop:
+            break;
+        case SyncAction.Delete:
+            try {
+                await uploader.deleteFile(dest_path);
+            } catch (err) {
+                logger.verbose(`Error deleting file ${dest_path}: ${err}`);
             }
+            ++countDeleted;
+            break;
+        case SyncAction.Upload: {
+            const parts = dest_path.split("/");
+            let cur_dir_part = "";
+            for (const p of parts.slice(0, parts.length - 1)) {
+                if (p === "") {
+                    continue;
+                }
+                const abs_p = cur_dir_part + p;
+                if (!existingFolders.has(abs_p)) {
+                    await uploader.createDirectory(abs_p).catch((err) => {
+                        logger.error("Error creating directory: " + err);
+                    });
+                    existingFolders.add(abs_p);
+                }
+                cur_dir_part += `${p}/`;
+            }
+
+            await uploader.upload(src_path, dest_path);
+            ++countUploaded;
+            break;
+        }
         }
     }
-    logger.info(`Files synced, ${countUploaded} uploaded, ${countDeleted} deleted`)
+    logger.info(`Files synced, ${countUploaded} uploaded, ${countDeleted} deleted`);
 }
 
 
@@ -150,8 +150,9 @@ const cmd = new Command("Flash code to device (replace contents of ./code)", {
                 throw err;
             });
 
-            await uploadIfDifferent(device.uploader, dataHashes, from, "code")
-        } catch (_err) {
+            await uploadIfDifferent(device.uploader, dataHashes, from, "code");
+        }
+        catch (_err) {
             logger.info("Deleting old code");
             await device.uploader.deleteDirectory("code").catch((err) => {
                 logger.verbose("Error deleting directory: " + err);
