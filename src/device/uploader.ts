@@ -20,6 +20,7 @@ export enum UploaderCommand {
     NOT_FOUND = 0x22,
     CONTINUE = 0x23,
     LOCK_NOT_OWNED = 0x24,
+    GET_DIR_HASHES = 0x25,
 }
 
 export const UploaderCommandStrings: Record<UploaderCommand, string> = {
@@ -37,6 +38,7 @@ export const UploaderCommandStrings: Record<UploaderCommand, string> = {
     [UploaderCommand.NOT_FOUND]: "NOT_FOUND",
     [UploaderCommand.CONTINUE]: "CONTINUE",
     [UploaderCommand.LOCK_NOT_OWNED]: "LOCK_NOT_OWNED",
+    [UploaderCommand.GET_DIR_HASHES]: "GET_DIR_HASHES",
 };
 
 export class Uploader {
@@ -463,6 +465,52 @@ export class Uploader {
             const packet = this._out.buildPacket();
             packet.put(UploaderCommand.FORMAT_STORAGE);
             packet.put(UploaderCommand.OK);
+            packet.send();
+        });
+    }
+
+    public getDirHashes(path_: string): Promise<[string, string][]> {
+        logger.verbose("Getting hashes of directory: " + path_);
+        return new Promise((resolve, reject) => {
+            let data: Buffer = Buffer.alloc(0);
+            this._onData = (d: Buffer) => {
+                const newData = Buffer.alloc(data.length + d.length);
+                newData.set(data);
+                newData.set(d, data.length);
+                data = newData;
+                return true;
+            };
+            this._onDataComplete = () => {
+                const buffer = Buffer.alloc(270);
+                let bufferIn = 0;
+                const result: [string, string][] = [];
+                for (let i = 0; i < data.length; i++) {
+                    const b = data[i];
+                    if (b == 0) {
+                        const name = buffer.toString("utf8", 0, buffer.indexOf(0));
+                        const sha1 = data.toString("hex", i + 1, i + 21);
+                        i += 20;
+                        logger.verbose(`${name} ${sha1}`)
+                        result.push([name, sha1]);
+                        buffer.fill(0);
+                        bufferIn = 0;
+                    }
+                    else {
+                        buffer[bufferIn++] = b;
+                    }
+                }
+                resolve(result);
+                return true;
+            };
+            this._onError = (cmd: UploaderCommand) => {
+                reject(UploaderCommandStrings[cmd]);
+                return true;
+            };
+            const packet = this._out.buildPacket();
+            packet.put(UploaderCommand.GET_DIR_HASHES);
+            for (const b of this.encodePath(path_, true)) {
+                packet.put(b);
+            }
             packet.send();
         });
     }
