@@ -12,7 +12,7 @@ import zip from "node-stream-zip";
 import { Stream } from "stream";
 
 
-const platforms = ["esp32", "esp32s3"];
+const platforms = ["esp32", "esp32s3", "esp32c3"];
 
 
 function getSizeUnit(size: number): [number, string] {
