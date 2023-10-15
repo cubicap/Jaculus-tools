@@ -17,7 +17,8 @@
         "clean": "tsc --build --clean",
         "lint": "eslint --ext .ts src unit",
         "test": "mocha",
-        "prepack": "npm run lint && npm run clean && npm run build && npm run test"
+        "prepack": "npm run lint && npm run clean && npm run build && npm run test",
+        "command": "node ./dist/src/commands/index.js"
     },
     "bin": {
         "jac": "./dist/src/commands/index.js"
@@ -30,11 +31,14 @@
         "dist"
     ],
     "dependencies": {
+        "@cubicap/esptool-js": "^0.3.2",
         "chalk": "^5.3.0",
         "cli-progress": "^3.12.0",
         "crc": "^4.3.2",
+        "get-uri": "^6.0.1",
         "node-stream-zip": "^1.15.0",
         "serialport": "^12.0.0",
+        "tar-stream": "^3.1.6",
         "typescript": "^5.2.2",
         "winston": "^3.10.0"
     },
@@ -44,6 +48,7 @@
         "@types/cli-progress": "^3.11.3",
         "@types/mocha": "^10.0.2",
         "@types/node": "^18.18.1",
+        "@types/tar-stream": "^2.2.2",
         "@typescript-eslint/eslint-plugin": "^6.7.3",
         "@typescript-eslint/parser": "^6.7.3",
         "chai": "^4.3.10",
