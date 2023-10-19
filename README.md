@@ -37,7 +37,7 @@ The runtime can be installed using the following command:
 
     jac install --package <package.tar.gz> --port <port>
 
-The command will download the selected package from the [downloads page](https://f.jaculus.org) and install it on the device. The package info can be viewed using the `--info` flag.
+The command will download the selected package and install it on the device (packages can be found on the [downloads page](https://f.jaculus.org)). The package info can be viewed using the `--info` flag.
 
 Verify that the runtime is installed correctly by running:
 
