@@ -8,8 +8,9 @@ const cmd = new Command("Test new install command", {
     action: async (options: Record<string, string | boolean>) => {
         const pkgPath = options["package"] as string;
         const port = options["port"] as string;
+        const info = options["info"] as boolean;
 
-        if (!port) {
+        if (!port && !info) {
             stderr.write("Port not specified\n");
             throw 1;
         }
@@ -23,11 +24,17 @@ const cmd = new Command("Test new install command", {
         stdout.write("Platform: " + pkg.getManifest().getPlatform() + "\n");
         stdout.write("\n");
 
-        await pkg.flash(port);
+        if (info) {
+            stdout.write(pkg.info());
+        }
+        else {
+            await pkg.flash(port);
+        }
     },
     args: [],
     options: {
-        "package": new Opt("Uri to the package file", { required: true })
+        "package": new Opt("Uri pointing to the package file", { required: true }),
+        "info": new Opt("Show package info", { isFlag: true })
     },
     chainable: false
 });

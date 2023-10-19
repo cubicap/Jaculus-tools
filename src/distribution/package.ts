@@ -3,6 +3,21 @@ import * as tar from "tar-stream";
 import * as espPlatform from "./esp32/esp32.js";
 import * as zlib from "zlib";
 
+/**
+ * Module for loading and flashing package files
+ *
+ * Package file is a tar.gz archive containing a manifest.json file and arbitrary files,
+ * which can be used by the flasher for the corresponding platform.
+ *
+ * The manifest.json file contains the following fields:
+ * - board: The board name
+ * - version: The version of the package
+ * - platform: The platform the package is for (determines which flasher to use)
+ * - config: An arbitrary json object containing configuration for the flasher (documented in the flasher module)
+ *
+ * Example manifest.json can be found in the flasher module.
+ */
+
 
 export class Manifest {
     private board: string;
@@ -92,6 +107,15 @@ export class Package {
         }
 
         return;
+    }
+
+    public info(): string {
+        switch (this.manifest.getPlatform()) {
+        case "esp32":
+            return espPlatform.info(this);
+        default:
+            throw new Error("Unsupported platform");
+        }
     }
 }
 
