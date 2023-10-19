@@ -22,7 +22,6 @@
         "pull.ts",
         "format.ts",
         "index.ts",
-        "new-install.ts",
         "lib/command.ts",
     ],
     "references": [

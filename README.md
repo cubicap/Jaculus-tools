@@ -7,41 +7,41 @@ running Jaculus runtime on the device.
 
 First, install node.js and npm. Then, install jaculus-tools with:
 
-    $ npm install -g jaculus-tools
+    npm install -g jaculus-tools
 
 Then, you can run the tools using:
 
-    $ jac
+    jac
 
 or
 
-    $ npx jac
+    npx jac
 
 ## Usage
 
 To see the list of available commands, use:
 
-    $ jac help
+    jac help
 
 To see help for a specific command, use:
 
-    $ jac help <command>
+    jac help <command>
 
 To connect to the device using serial port, the correct driver must be installed - most likely [CP210x USB to UART Bridge](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers).
 
 ### Installing Jaculus firmware to the device
 
-On Windows, this step requires Python 3 and git to be installed
+First, the Jaculus runtime must be installed on the device.
 
-On Linux, this step requires python3, python3-venv, git, cmake
+The runtime can be installed using the following command:
 
-To install Jaculus to the device, use:
+    jac install --package <package.tar.gz> --port <port>
 
-    $ jac install --port <port> --platform <platform>
+The command will download the selected package from the [downloads page](https://f.jaculus.org) and install it on the device. The package info can be viewed using the `--info` flag.
 
-You can specify existing ESP-IDF installation using `--idf` option (requires ESP-IDF version 5.0):
+Verify that the runtime is installed correctly by running:
 
-    $ jac install --port <port> --platform <platform> --idf <path>
+    jac version
 
 
 ### Connecting to the device
@@ -50,19 +50,19 @@ All commands interacting with the device require specifying the device connectio
 
 To connect to the device using serial port, use:
 
-    $ jac --port <port> <command>
+    jac --port <port> <command>
 
 To connect to the device using TCP socket, use:
 
-    $ jac --socket <host>:<port> <command>
+    jac --socket <host>:<port> <command>
 
 To list available serial ports, use:
 
-    $ jac list-ports
+    jac list-ports
 
 To tunnel serial port over TCP, use:
 
-    $ jac serial-socket --port <port> --socket <port>
+    jac serial-socket --port <port> --socket <port>
 
 
 ### Creating and running TypeScript programs
@@ -90,7 +90,7 @@ Create a directory for your source files.
 
 Flash the JavaScript program to the device (`<path>` should point to the source directory):
 
-    $ jac flash --from <path>
+    jac flash --from <path>
 
 After flashing, the program will be immediately executed on the device.
 
@@ -101,19 +101,17 @@ The entry point of the program is the `index.js` file in the source directory.
 
 To control the device, use the following commands:
 
-    $ jac start <path>
-    $ jac stop
-    $ jac status
-    $ jac monitor
+    jac start <path>
+    jac stop
+    jac status
+    jac monitor
 
 
 ## Updating the firmware
 
-The CLI tool caches the firmware build in the `~/.jaculus` directory for faster flashing.
+To update the firmware, just install the new runtime package using the `install` command.
 
-To update the firmware, force the tool to download the latest version:
-
-    jac install --port <port> --platform <platform> --upstream force
+Note that this will erase all data stored on the device. It may be also necessary to update the type definitions for the runtime. They can be found in the example project on [GitHub](https://github.com/cubicap/Jaculus-esp32/tree/master/ts-examples).
 
 
 # License

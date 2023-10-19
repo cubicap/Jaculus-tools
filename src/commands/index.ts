@@ -64,7 +64,6 @@ import version from "./version.js";
 import monitor from "./monitor.js";
 import pull from "./pull.js";
 import fomat from "./format.js";
-import newInstall from "./new-install.js";
 
 jac.addCommand("list-ports", listPorts);
 jac.addCommand("serial-socket", serialSocket);
@@ -86,8 +85,6 @@ jac.addCommand("start", start);
 jac.addCommand("stop", stop);
 jac.addCommand("status", status);
 jac.addCommand("version", version);
-
-jac.addCommand("new-install", newInstall);
 
 jac.addCommand("monitor", monitor);
 
