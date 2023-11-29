@@ -1,6 +1,6 @@
 {
     "name": "jaculus-tools",
-    "version": "0.0.18",
+    "version": "0.0.19",
     "description": "Companion application/library for Jaculus",
     "repository": {
         "type": "git",
