@@ -5,7 +5,6 @@ import { SerialPort } from "serialport";
 
 const cmd = new Command("List available serial ports", {
     action: async () => {
-        stdout.write("Available serial ports:\n");
         const table: { path: string, manufacturer?: string }[] = [ { path: "Path", manufacturer: "Manufacturer" } ];
         const ports = await SerialPort.list();
         for (const port of ports) {
@@ -20,11 +19,10 @@ const cmd = new Command("List available serial ports", {
         }
         let first = true;
         for (const row of table) {
-            stdout.write("  " + row.path.padEnd(maxPathLength) + "  " + (row.manufacturer || "") + "\n");
+            stdout.write(row.path.padEnd(maxPathLength) + "  " + (row.manufacturer || "") + "\n");
             if (first) {
                 first = false;
-                stdout.write("  " + "-".repeat(maxPathLength) + "  " + "-".repeat(12) + "\n");
-                continue;
+                stdout.write("-".repeat(maxPathLength) + "  " + "-".repeat(12) + "\n");
             }
         }
         return;

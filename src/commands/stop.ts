@@ -1,5 +1,5 @@
 import { Command, Env } from "./lib/command.js";
-import { stdout } from "process";
+import { stdout, stderr } from "process";
 import { getDevice } from "./util.js";
 
 
@@ -12,17 +12,17 @@ const cmd = new Command("Stop a program", {
         const device = await getDevice(port, baudrate, socket, env);
 
         await device.controller.lock().catch((err) => {
-            stdout.write("Error locking device: " + err);
+            stderr.write("Error locking device: " + err + "\n");
             throw 1;
         });
 
         await device.controller.stop().catch((err) => {
-            stdout.write("Error: " + err + "\n");
+            stderr.write("Error: " + err + "\n");
             throw 1;
         });
 
         await device.controller.unlock().catch((err) => {
-            stdout.write("Error unlocking device: " + err);
+            stderr.write("Error unlocking device: " + err + "\n");
             throw 1;
         });
 

@@ -1,5 +1,5 @@
 import { Command, Env } from "./lib/command.js";
-import { stdout } from "process";
+import { stdout, stderr } from "process";
 import { getDevice } from "./util.js";
 
 
@@ -12,7 +12,7 @@ const cmd = new Command("Get status of device", {
         const device = await getDevice(port, baudrate, socket, env);
 
         const status = await device.controller.status().catch((err) => {
-            stdout.write("Error: " + err + "\n");
+            stderr.write("Error: " + err + "\n");
             throw 1;
         });
 

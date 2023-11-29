@@ -2,7 +2,7 @@
 
 import { Opt, Arg, Command, Program } from "./lib/command.js";
 import { logger } from "../util/logger.js";
-import { stdout } from "process";
+import { stdout, stderr } from "process";
 
 
 const jac = new Program("jac", "Tools for controlling devices running Jaculus", {
@@ -98,7 +98,7 @@ if (args.length === 0) {
 jac.run(args).then(() => {
     jac.end();
 
-    console.log("Done");
+    stderr.write("\nDone\n");
     process.exit(0);
 }
 ).catch((e) => {
@@ -108,11 +108,11 @@ jac.run(args).then(() => {
         process.exit(e);
     }
     else if (e instanceof Error) {
-        console.log(e.message);
+        console.error(e.message);
         process.exit(1);
     }
     else {
-        console.log(e);
+        console.error(e);
         process.exit(1);
     }
 });

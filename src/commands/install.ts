@@ -15,7 +15,7 @@ const cmd = new Command("Install Jaculus to device", {
             throw 1;
         }
 
-        stdout.write("Loading package...\n");
+        stderr.write("Loading package...\n");
 
         const pkg = await loadPackage(pkgPath);
 

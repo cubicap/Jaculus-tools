@@ -1,5 +1,5 @@
 import { Arg, Command, Env } from "./lib/command.js";
-import { stdout } from "process";
+import { stdout, stderr } from "process";
 import { getDevice } from "./util.js";
 import * as readline from "readline";
 
@@ -29,29 +29,29 @@ const cmd = new Command("Write a file to device", {
                 str += line + "\n";
             });
             rl.on("close", () => {
-                stdout.write("Write cancelled");
+                stderr.write("Write cancelled\n");
                 reject(null);
             });
         })
             .catch((err) => {
-                stdout.write("Error: " + err + "\n");
+                stderr.write("Error: " + err + "\n");
                 throw 1;
             });
 
         const device = await getDevice(port, baudrate, socket, env);
 
         await device.controller.lock().catch((err) => {
-            stdout.write("Error locking device: " + err);
+            stderr.write("Error locking device: " + err + "\n");
             throw 1;
         });
 
         const cmd = await device.uploader.writeFile(path, Buffer.from(str, "utf-8")).catch((err) => {
-            stdout.write("Error: " + err + "\n");
+            stderr.write("Error: " + err + "\n");
             throw 1;
         });
 
         await device.controller.unlock().catch((err) => {
-            stdout.write("Error unlocking device: " + err);
+            stderr.write("Error unlocking device: " + err + "\n");
             throw 1;
         });
 

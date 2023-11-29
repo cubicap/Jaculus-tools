@@ -1,5 +1,5 @@
 import { Command } from "./lib/command.js";
-import { stdout } from "process";
+import { stdout, stderr } from "process";
 import { defaultPort, defaultSocket } from "./util.js";
 import * as net from "net";
 import { SerialPort } from "serialport";
@@ -16,7 +16,7 @@ const cmd = new Command("Tunnel a serial port over a TCP socket", {
                 socket = socket.slice("localhost:".length);
             }
 
-            stdout.write("Tunneling " + portPath + " at " + baudrate + " bauds\n");
+            stderr.write("Tunneling " + portPath + " at " + baudrate + " bauds\n");
 
 
             const sockets: Set<net.Socket> = new Set();
@@ -29,7 +29,7 @@ const cmd = new Command("Tunnel a serial port over a TCP socket", {
 
             port.open((err) => {
                 if (err) {
-                    stdout.write("Port open error: " + err.message + "\n");
+                    stderr.write("Port open error: " + err.message + "\n");
                     reject(1);
                 }
 
@@ -47,12 +47,12 @@ const cmd = new Command("Tunnel a serial port over a TCP socket", {
             });
 
             port.on("error", (err) => {
-                stdout.write("Port error: " + err.message + "\n");
+                stderr.write("Port error: " + err.message + "\n");
                 reject(1);
             });
 
             port.on("close", () => {
-                stdout.write("Port closed\n");
+                stderr.write("Port closed\n");
                 resolve();
             });
 
@@ -73,29 +73,29 @@ const cmd = new Command("Tunnel a serial port over a TCP socket", {
                 });
                 socket.on("close", () => {
                     sockets.delete(socket);
-                    stdout.write("Socket closed\n");
+                    stderr.write("Socket closed\n");
                 });
                 socket.on("error", (err) => {
-                    stdout.write("Socket error: " + err.message + "\n");
+                    stderr.write("Socket error: " + err.message + "\n");
                 });
             });
 
             server.on("close", () => {
-                stdout.write("Server closed\n");
+                stderr.write("Server closed\n");
                 port.close();
             });
 
             server.on("error", (err) => {
-                stdout.write("Server error: " + err.message + "\n");
+                stderr.write("Server error: " + err.message + "\n");
                 reject(1);
             });
 
             server.listen(socket, () => {
-                stdout.write("Server listening on port " + socket + "\n");
+                stderr.write("Server listening on port " + socket + "\n");
             });
 
             process.on("SIGINT", () => {
-                stdout.write("Closing...\n");
+                stderr.write("Closing...\n");
                 for (const socket of sockets.values()) {
                     socket.end();
                 }

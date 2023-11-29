@@ -2,7 +2,7 @@ import * as fs from "fs";
 import crypto from "crypto";
 
 import { Command, Env, Opt } from "./lib/command.js";
-import { stdout } from "process";
+import { stderr } from "process";
 import { getDevice } from "./util.js";
 import { logger } from "../util/logger.js";
 import { Uploader } from "src/device/uploader.js";
@@ -39,7 +39,7 @@ async function fileSha1(path: string): Promise<string> {
 
 async function uploadIfDifferent(uploader: Uploader, remoteHashes: [string, string][], from: string, to: string) {
     if (!fs.lstatSync(from).isDirectory()) {
-        stdout.write("FROM must be a directory");
+        stderr.write("FROM must be a directory\n");
         throw 1;
     }
 
@@ -135,7 +135,7 @@ const cmd = new Command("Flash code to device (replace contents of ./code)", {
         const device = await getDevice(port, baudrate, socket, env);
 
         await device.controller.lock().catch((err) => {
-            stdout.write("Error locking device: " + err);
+            stderr.write("Error locking device: " + err + "\n");
             throw 1;
         });
 
@@ -146,7 +146,7 @@ const cmd = new Command("Flash code to device (replace contents of ./code)", {
         try {
             logger.info("Getting current data hashes");
             const dataHashes = await device.uploader.getDirHashes("code").catch((err) => {
-                stdout.write("Error getting data hashes: " + err + "\n");
+                stderr.write("Error getting data hashes: " + err + "\n");
                 throw err;
             });
 
@@ -159,19 +159,19 @@ const cmd = new Command("Flash code to device (replace contents of ./code)", {
             });
 
             const cmd = await device.uploader.upload(from, "code").catch((err) => {
-                stdout.write("Error uploading: " + err + "\n");
+                stderr.write("Error uploading: " + err + "\n");
                 throw 1;
             });
-            stdout.write(cmd.toString() + "\n");
+            stderr.write(cmd.toString() + "\n");
         }
 
         await device.controller.start("index.js").catch((err) => {
-            stdout.write("Error starting program: " + err + "\n");
+            stderr.write("Error starting program: " + err + "\n");
             throw 1;
         });
 
         await device.controller.unlock().catch((err) => {
-            stdout.write("Error unlocking device: " + err);
+            stderr.write("Error unlocking device: " + err + "\n");
             throw 1;
         });
     },

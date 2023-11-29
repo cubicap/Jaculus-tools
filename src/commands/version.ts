@@ -1,5 +1,5 @@
 import { Command, Env } from "./lib/command.js";
-import { stdout } from "process";
+import { stdout, stderr } from "process";
 import { getDevice } from "./util.js";
 
 import { version } from "../project/version.js";
@@ -15,7 +15,7 @@ const cmd = new Command("Get version of device firmware", {
         const device = await getDevice(port, baudrate, socket, env);
 
         const status = await device.controller.version().catch((err) => {
-            stdout.write("Error: " + err + "\n");
+            stderr.write("Error: " + err + "\n");
             throw 1;
         });
 

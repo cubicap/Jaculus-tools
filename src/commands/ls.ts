@@ -1,5 +1,5 @@
 import { Arg, Command, Env, Opt } from "./lib/command.js";
-import { stdout } from "process";
+import { stdout, stderr } from "process";
 import { getDevice } from "./util.js";
 import chalk from "chalk";
 
@@ -18,22 +18,22 @@ const cmd = new Command("List files in a directory", {
         const device = await getDevice(port, baudrate, socket, env);
 
         await device.controller.lock().catch((err) => {
-            stdout.write("Error locking device: " + err);
+            stderr.write("Error locking device: " + err + "\n");
             throw 1;
         });
 
         const listing = await device.uploader.listDirectory(path, flags).catch((err) => {
-            stdout.write("Error: " + err + "\n");
+            stderr.write("Error: " + err + "\n");
             throw 1;
         });
 
-        stdout.write("Listing of " + path + ":\n");
+        stderr.write("Listing of " + path + ":\n");
         for (const [name, isDir, size] of listing) {
             stdout.write("  " + (isDir ? chalk.blueBright(name) : name) + (sizeFlag ? " (" + size + " bytes)" : "") + "\n");
         }
 
         await device.controller.unlock().catch((err) => {
-            stdout.write("Error unlocking device: " + err);
+            stderr.write("Error unlocking device: " + err + "\n");
             throw 1;
         });
     },

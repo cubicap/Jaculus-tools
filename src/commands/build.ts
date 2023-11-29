@@ -2,6 +2,7 @@ import { Command, Opt } from "./lib/command.js";
 import path from "path";
 import { compile } from "../code/compiler.js";
 import * as fs from "fs";
+import { stderr } from "process";
 
 
 function listDts(dir: string): string[] {  // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -18,7 +19,7 @@ function listDts(dir: string): string[] {  // eslint-disable-line @typescript-es
 }
 
 
-const cmd = new Command("Compile target file", {
+const cmd = new Command("Build TypeScript project", {
     action: async (options: Record<string, string | boolean>) => {
         const path_ = options["input"] as string;
 
@@ -26,10 +27,10 @@ const cmd = new Command("Compile target file", {
         const outDir = path.join(parentDir, "build");
 
         if (compile(path_, outDir)) {
-            console.log("Compiled successfully");
+            stderr.write("Compiled successfully\n");
         }
         else {
-            console.log("Compilation failed");
+            stderr.write("Compilation failed\n");
             throw 1;
         }
     },

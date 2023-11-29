@@ -2,7 +2,7 @@ import { JacDevice } from "../device/jacDevice.js";
 import { SerialStream } from "../link/streams/serialStream.js";
 import { SocketStream } from "../link/streams/socketStream.js";
 import { SerialPort } from "serialport";
-import { stdout } from "process";
+import { stderr } from "process";
 import { logger } from "../util/logger.js";
 import { Env } from "./lib/command.js";
 
@@ -10,12 +10,12 @@ import { Env } from "./lib/command.js";
 export async function defaultPort(value?: string): Promise<string> {
     if (!value) {
         const ports = await SerialPort.list().catch((err) => {
-            stdout.write("Error listing serial ports: " + err);
+            stderr.write("Error listing serial ports: " + err + "\n");
             throw 1;
         });
 
         if (ports.length == 0) {
-            stdout.write("No serial ports found\n");
+            stderr.write("No serial ports found\n");
             throw 1;
         }
         return ports[0].path;
@@ -39,7 +39,7 @@ export function defaultSocket(value?: string): string {
 
 export async function getPortSocket(port?: string | boolean, socket?: string | boolean): Promise<{ type: "port" | "socket", value: string }> {
     if (port && socket) {
-        stdout.write("Must specify either a serial port or a socket, not both\n");
+        stderr.write("Must specify either a serial port or a socket, not both\n");
         throw 1;
     }
 
@@ -60,7 +60,7 @@ export function parseSocket(value: string): [string, number] {
         return ["localhost", parseInt(parts[0])];
     }
     else if (parts.length > 2) {
-        stdout.write("Invalid socket value");
+        stderr.write("Invalid socket value\n");
         throw 1;
     }
 
@@ -78,12 +78,12 @@ export async function getDevice(port: string | undefined, baudrate: string | und
 
     if (where.type === "port") {
         const rate = parseInt(defaultBaudrate(baudrate));
-        stdout.write("Connecting to serial at " + where.value + " at " + rate + " bauds... ");
+        stderr.write("Connecting to serial at " + where.value + " at " + rate + " bauds... ");
 
         await new Promise((resolve, reject) => {
             device = new JacDevice(new SerialStream(where.value, rate,{
                 "error": (err) => {
-                    stdout.write("Port error: " + err.message + "\n");
+                    stderr.write("\nPort error: " + err.message + "\n");
                     reject(1);
                 },
                 "open": () => {
@@ -94,12 +94,12 @@ export async function getDevice(port: string | undefined, baudrate: string | und
     }
     else if (where.type === "socket") {
         const [host, port] = parseSocket(where.value);
-        stdout.write("Connecting to socket at " + host + ":" + port + "... ");
+        stderr.write("Connecting to socket at " + host + ":" + port + "... ");
 
         await new Promise((resolve, reject) => {
             device = new JacDevice(new SocketStream(host, port, {
                 "error": (err) => {
-                    stdout.write("Socket error: " + err.message + "\n");
+                    stderr.write("\nSocket error: " + err.message + "\n");
                     reject(1);
                 },
                 "open": () => {
@@ -110,13 +110,13 @@ export async function getDevice(port: string | undefined, baudrate: string | und
     }
 
     if (!device) {
-        stdout.write("Invalid port/socket");
+        stderr.write("Invalid port/socket\n");
         throw 1;
     }
     device = device as JacDevice;
 
 
-    stdout.write("Connected.\n\n");
+    stderr.write("Connected.\n\n");
 
     device.errorOutput.onData((data) => {
         logger.error("Device: " + data.toString());
