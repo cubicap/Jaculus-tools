@@ -64,6 +64,8 @@ import version from "./version.js";
 import monitor from "./monitor.js";
 import pull from "./pull.js";
 import fomat from "./format.js";
+import resourcesLs from "./resources-ls.js";
+import resourcesRead from "./resources-read.js";
 
 jac.addCommand("list-ports", listPorts);
 jac.addCommand("serial-socket", serialSocket);
@@ -80,6 +82,9 @@ jac.addCommand("mkdir", mkdir);
 jac.addCommand("rmdir", rmdir);
 jac.addCommand("upload", upload);
 jac.addCommand("format", fomat);
+
+jac.addCommand("resources-ls", resourcesLs);
+jac.addCommand("resources-read", resourcesRead);
 
 jac.addCommand("start", start);
 jac.addCommand("stop", stop);

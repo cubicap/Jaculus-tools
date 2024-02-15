@@ -21,6 +21,8 @@
         "install.ts",
         "pull.ts",
         "format.ts",
+        "resources-ls.ts",
+        "resources-read.ts",
         "index.ts",
         "lib/command.ts",
     ],

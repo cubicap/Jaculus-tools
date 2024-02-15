@@ -13,6 +13,8 @@ export enum UploaderCommand {
     CREATE_DIR = 0x05,
     DELETE_DIR = 0x06,
     FORMAT_STORAGE = 0x07,
+    LIST_RESOURCES = 0x08,
+    READ_RESOURCE = 0x09,
     HAS_MORE_DATA = 0x10,
     LAST_DATA = 0x11,
     OK = 0x20,
@@ -31,6 +33,8 @@ export const UploaderCommandStrings: Record<UploaderCommand, string> = {
     [UploaderCommand.CREATE_DIR]: "CREATE_DIR",
     [UploaderCommand.DELETE_DIR]: "DELETE_DIR",
     [UploaderCommand.FORMAT_STORAGE]: "FORMAT_STORAGE",
+    [UploaderCommand.LIST_RESOURCES]: "LIST_RESOURCES",
+    [UploaderCommand.READ_RESOURCE]: "READ_RESOURCE",
     [UploaderCommand.HAS_MORE_DATA]: "HAS_MORE_DATA",
     [UploaderCommand.LAST_DATA]: "LAST_DATA",
     [UploaderCommand.OK]: "OK",
@@ -509,6 +513,85 @@ export class Uploader {
             const packet = this._out.buildPacket();
             packet.put(UploaderCommand.GET_DIR_HASHES);
             for (const b of this.encodePath(path_, true)) {
+                packet.put(b);
+            }
+            packet.send();
+        });
+    }
+
+    public listResources(): Promise<[string, number][]> {
+        logger.verbose("Listing resources");
+        return new Promise((resolve, reject) => {
+            let data: Buffer = Buffer.alloc(0);
+            this._onData = (d: Buffer) => {
+                const newData = Buffer.alloc(data.length + d.length);
+                newData.set(data);
+                newData.set(d, data.length);
+                data = newData;
+                return true;
+            };
+            this._onDataComplete = () => {
+                console.log(data);
+                const buffer = Buffer.alloc(270);
+                let bufferIn = 0;
+                const result: [string, number][] = [];
+                for (let i = 0; i < data.length; i++) {
+                    const b = data[i];
+                    if (b == 0) {
+                        const name = buffer.toString("utf8", 0, buffer.indexOf(0));
+                        let size = 0;
+                        for (let off = 0; off < 4; off++) {
+                            logger.debug("size: " + size + " + " + data[i + off + 1]);
+                            size <<= 8;
+                            size |= data[i + off + 1];
+                        }
+                        i += 4;
+                        result.push([name, size]);
+                        buffer.fill(0);
+                        bufferIn = 0;
+                    }
+                    else {
+                        buffer[bufferIn++] = b;
+                    }
+                }
+                resolve(result);
+                return true;
+            };
+            this._onError = (cmd: UploaderCommand) => {
+                reject(UploaderCommandStrings[cmd]);
+                return true;
+            };
+
+            const packet = this._out.buildPacket();
+            packet.put(UploaderCommand.LIST_RESOURCES);
+            packet.send();
+        });
+    }
+
+
+    public readResource(name: string): Promise<Buffer> {
+        logger.verbose("Reading resource: " + name);
+        return new Promise((resolve, reject) => {
+            let data: Buffer = Buffer.alloc(0);
+            this._onData = (d: Buffer) => {
+                const newData = Buffer.alloc(data.length + d.length);
+                newData.set(data);
+                newData.set(d, data.length);
+                data = newData;
+                return true;
+            };
+            this._onDataComplete = () => {
+                resolve(data);
+                return true;
+            };
+            this._onError = (cmd: UploaderCommand) => {
+                reject(UploaderCommandStrings[cmd]);
+                return true;
+            };
+
+            const packet = this._out.buildPacket();
+            packet.put(UploaderCommand.READ_RESOURCE);
+            for (const b of this.encodePath(name, false)) {
                 packet.put(b);
             }
             packet.send();
