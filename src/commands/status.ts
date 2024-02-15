@@ -11,6 +11,11 @@ const cmd = new Command("Get status of device", {
 
         const device = await getDevice(port, baudrate, socket, env);
 
+        await device.controller.lock().catch((err) => {
+            stderr.write("Error locking device: " + err + "\n");
+            throw 1;
+        });
+
         const status = await device.controller.status().catch((err) => {
             stderr.write("Error: " + err + "\n");
             throw 1;
@@ -21,6 +26,11 @@ const cmd = new Command("Get status of device", {
             stdout.write("Last exit code: " + status.exitCode + "\n");
         }
         stdout.write(status.status + "\n");
+
+        await device.controller.unlock().catch((err) => {
+            stderr.write("Error unlocking device: " + err + "\n");
+            throw 1;
+        });
     },
     chainable: true
 });

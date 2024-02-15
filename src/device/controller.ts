@@ -4,6 +4,8 @@ import { TimeoutPromise } from "../util/timeoutPromise.js";
 
 
 const TIMEOUT_MS = 5000;
+const LOCK_TIMEOUT = 100;
+const LOCK_RETRIES = 50;
 
 export enum ControllerCommand {
     START = 0x01,
@@ -159,24 +161,37 @@ export class Controller {
         });
     }
 
-    public lock(): Promise<void> {
+    public async lock(): Promise<void> {
         logger.verbose("Locking controller");
-        return new TimeoutPromise(TIMEOUT_MS, (resolve, reject) => {
-            this._onPacket = (cmd: ControllerCommand) => {
-                if (cmd == ControllerCommand.OK) {
-                    setTimeout(resolve, 10);
-                } else {
-                    reject(ControllerCommandStrings[cmd]);
-                }
-                return true;
-            };
 
-            const packet = this._out.buildPacket();
-            packet.put(ControllerCommand.LOCK);
-            packet.send();
-        }, () => {
-            this.cancel();
-        });
+        let retries = LOCK_RETRIES;
+        while (retries > 0) {
+            try {
+                await new TimeoutPromise(LOCK_TIMEOUT, (resolve, reject) => {
+                    this._onPacket = (cmd: ControllerCommand) => {
+                        if (cmd == ControllerCommand.OK) {
+                            setTimeout(resolve, 10);
+                        } else {
+                            reject(ControllerCommandStrings[cmd]);
+                        }
+                        return true;
+                    };
+
+                    const packet = this._out.buildPacket();
+                    packet.put(ControllerCommand.LOCK);
+                    packet.send();
+                }, () => {
+                    this.cancel();
+                });
+
+                return;
+            }
+            catch (err) {
+                logger.verbose("Failed to lock controller, retries: " + retries);
+            }
+
+            retries--;
+        }
     }
 
     public unlock(): Promise<void> {
