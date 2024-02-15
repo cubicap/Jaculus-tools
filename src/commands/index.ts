@@ -66,6 +66,7 @@ import pull from "./pull.js";
 import fomat from "./format.js";
 import resourcesLs from "./resources-ls.js";
 import resourcesRead from "./resources-read.js";
+import getExamples from "./get-examples.js";
 
 jac.addCommand("list-ports", listPorts);
 jac.addCommand("serial-socket", serialSocket);
@@ -85,6 +86,7 @@ jac.addCommand("format", fomat);
 
 jac.addCommand("resources-ls", resourcesLs);
 jac.addCommand("resources-read", resourcesRead);
+jac.addCommand("get-examples", getExamples);
 
 jac.addCommand("start", start);
 jac.addCommand("stop", stop);

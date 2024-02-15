@@ -23,6 +23,7 @@
         "format.ts",
         "resources-ls.ts",
         "resources-read.ts",
+        "get-examples.ts",
         "index.ts",
         "lib/command.ts",
     ],
