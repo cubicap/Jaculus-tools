@@ -1,6 +1,7 @@
 import { InputPacketCommunicator, OutputPacketCommunicator } from "../link/communicator.js";
 import { Packet } from "../link/linkTypes.js";
 import * as fs from "fs";
+import { encodePath } from "../util/encoding.js"
 import { logger } from "../util/logger.js";
 import path from "path";
 
@@ -139,17 +140,6 @@ export class Uploader {
         }
     }
 
-    public encodePath(path_: string, nullTerminate = true): Buffer {
-        const data = Buffer.alloc(path_.length + (nullTerminate ? 1 : 0));
-        for (let i = 0; i < path_.length; i++) {
-            data[i] = path_.charCodeAt(i);
-        }
-        if (nullTerminate) {
-            data[path_.length] = 0;
-        }
-        return data;
-    }
-
     public readFile(path_: string): Promise<Buffer> {
         logger.verbose("Reading file: " + path_);
         return new Promise((resolve, reject) => {
@@ -171,7 +161,7 @@ export class Uploader {
             };
             const packet = this._out.buildPacket();
             packet.put(UploaderCommand.READ_FILE);
-            for (const b of this.encodePath(path_, false)) {
+            for (const b of encodePath(path_, false)) {
                 packet.put(b);
             }
             packet.send();
@@ -194,7 +184,7 @@ export class Uploader {
             (async () => {
                 let packet: Packet | null = this._out.buildPacket();
                 packet.put(UploaderCommand.WRITE_FILE);
-                for (const b of this.encodePath(path_, true)) {
+                for (const b of encodePath(path_, true)) {
                     packet.put(b);
                 }
 
@@ -247,7 +237,7 @@ export class Uploader {
 
             const packet = this._out.buildPacket();
             packet.put(UploaderCommand.DELETE_FILE);
-            for (const b of this.encodePath(path_, false)) {
+            for (const b of encodePath(path_, false)) {
                 packet.put(b);
             }
             packet.send();
@@ -299,7 +289,7 @@ export class Uploader {
             };
             const packet = this._out.buildPacket();
             packet.put(UploaderCommand.LIST_DIR);
-            for (const b of this.encodePath(path_, true)) {
+            for (const b of encodePath(path_, true)) {
                 packet.put(b);
             }
             for (const b of flags) {
@@ -324,7 +314,7 @@ export class Uploader {
 
             const packet = this._out.buildPacket();
             packet.put(UploaderCommand.CREATE_DIR);
-            for (const b of this.encodePath(path_, false)) {
+            for (const b of encodePath(path_, false)) {
                 packet.put(b);
             }
             packet.send();
@@ -346,7 +336,7 @@ export class Uploader {
 
             const packet = this._out.buildPacket();
             packet.put(UploaderCommand.DELETE_DIR);
-            for (const b of this.encodePath(path_, false)) {
+            for (const b of encodePath(path_, false)) {
                 packet.put(b);
             }
             packet.send();
@@ -512,7 +502,7 @@ export class Uploader {
             };
             const packet = this._out.buildPacket();
             packet.put(UploaderCommand.GET_DIR_HASHES);
-            for (const b of this.encodePath(path_, true)) {
+            for (const b of encodePath(path_, true)) {
                 packet.put(b);
             }
             packet.send();
@@ -591,7 +581,7 @@ export class Uploader {
 
             const packet = this._out.buildPacket();
             packet.put(UploaderCommand.READ_RESOURCE);
-            for (const b of this.encodePath(name, false)) {
+            for (const b of encodePath(name, false)) {
                 packet.put(b);
             }
             packet.send();
