@@ -1,7 +1,7 @@
 import { InputPacketCommunicator, OutputPacketCommunicator } from "../link/communicator.js";
 import { Packet } from "../link/linkTypes.js";
 import * as fs from "fs";
-import { encodePath } from "../util/encoding.js"
+import { encodePath } from "../util/encoding.js";
 import { logger } from "../util/logger.js";
 import path from "path";
 

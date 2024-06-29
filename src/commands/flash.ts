@@ -67,14 +67,17 @@ async function uploadIfDifferent(uploader: Uploader, remoteHashes: [string, stri
                         action: SyncAction.Upload,
                     };
                     logger.verbose(`${key} is new, will upload`);
-                } else if (info.sha1 === sha1) {
+                }
+                else if (info.sha1 === sha1) {
                     info.action = SyncAction.Noop;
                     logger.verbose(`${key} has same sha1 on device and on disk, skipping`);
-                }  else  {
+                }
+                else  {
                     info.action = SyncAction.Upload;
                     logger.verbose(`${key} is different, will upload`);
                 }
-            } else if (e.isDirectory()) {
+            }
+            else if (e.isDirectory()) {
                 dirs.push(`${cur_dir}/${e.name}`);
             }
         }

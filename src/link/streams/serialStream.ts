@@ -103,7 +103,8 @@ export class SerialStream implements Duplex {
                         this.callbacks["end"]();
                     }
                     reject(err);
-                } else {
+                }
+                else {
                     if (this.callbacks["end"]) {
                         this.callbacks["end"]();
                     }
