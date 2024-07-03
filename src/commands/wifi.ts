@@ -1,6 +1,7 @@
 import { Arg, Opt, Command, Env } from "./lib/command.js";
 import { stdout, stderr } from "process";
-import { getDevice } from "./util.js";
+import { getDevice, readPassword } from "./util.js";
+
 
 enum WifiKvNs {
     Ssids = "wifi_net",
@@ -36,7 +37,8 @@ export const wifiAdd = new Command("Add a WiFi network", {
         const baudrate = options["baudrate"] as string;
         const socket = options["socket"] as string;
         const ssid = args["ssid"] as string;
-        const password = (args["password"] || "") as string;
+
+        const password = await readPassword("Password: ");
 
         const device = await getDevice(port, baudrate, socket, env);
 
@@ -56,7 +58,6 @@ export const wifiAdd = new Command("Add a WiFi network", {
     },
     args: [
         new Arg("ssid", "SSID (name) of the network", { required: true }),
-        new Arg("password", "password for the network", { required: false }),
     ],
     chainable: true
 });
@@ -176,8 +177,8 @@ export const wifiSetAp = new Command("Set WiFi to AP mode (create a hotspot)", {
         const baudrate = options["baudrate"] as string;
         const socket = options["socket"] as string;
 
-        const ssid = options["ssid"] as string | undefined;
-        const pass = options["pass"] as string | undefined;
+        const ssid = args["ssid"] as string | undefined;
+        const pass = await readPassword("Password: ");
 
         if (ssid && ssid.length >= 31) {
             stderr.write("SSID is too long\n");
@@ -186,11 +187,6 @@ export const wifiSetAp = new Command("Set WiFi to AP mode (create a hotspot)", {
 
         if (pass && pass.length >= 63) {
             stderr.write("Password is too long\n");
-            throw 1;
-        }
-
-        if (pass && pass.length < 8) {
-            stderr.write("Password is too short\n");
             throw 1;
         }
 
@@ -216,11 +212,9 @@ export const wifiSetAp = new Command("Set WiFi to AP mode (create a hotspot)", {
 
         stdout.write("Wifi config changed.\n");
     },
-    options: {
-        "ssid": new Opt("SSID (name) of the created network (default: unchanged)"),
-        "pass": new Opt("Password of the created network; must be at least 8 chars (default: unchanged)"),
-    },
-    args: [],
+    args: [
+        new Arg("ssid", "SSID (name) of the network", { required: true }),
+    ],
     chainable: true
 });
 
@@ -266,7 +260,7 @@ export const wifiSetSta = new Command("Set WiFi to Station mode (connect to a wi
     },
     options: {
         "specific": new Opt("SSID (name) of a wifi network to connect to. It must be added using wifi-add first. If specified, this network will be used exclusively, without scanning."),
-        "no-ap-fallback": new Opt("Disable AP fallback when no known network is found.", {isFlag: true})
+        "no-ap-fallback": new Opt("Disable AP fallback when no known network is found.", { isFlag: true })
     },
     args: [],
     chainable: true

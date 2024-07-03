@@ -2,9 +2,10 @@ import { JacDevice } from "../device/jacDevice.js";
 import { SerialStream } from "../link/streams/serialStream.js";
 import { SocketStream } from "../link/streams/socketStream.js";
 import { SerialPort } from "serialport";
-import { stderr } from "process";
+import { stderr, stdout } from "process";
 import { logger } from "../util/logger.js";
 import { Env } from "./lib/command.js";
+import readline from "readline";
 
 
 export async function defaultPort(value?: string): Promise<string> {
@@ -81,7 +82,7 @@ export async function getDevice(port: string | undefined, baudrate: string | und
         stderr.write("Connecting to serial at " + where.value + " at " + rate + " bauds... ");
 
         await new Promise((resolve, reject) => {
-            device = new JacDevice(new SerialStream(where.value, rate,{
+            device = new JacDevice(new SerialStream(where.value, rate, {
                 "error": (err) => {
                     stderr.write("\nPort error: " + err.message + "\n");
                     reject(1);
@@ -146,4 +147,45 @@ export async function withDevice(port: string | undefined, baudrate: string | un
     const device = await getDevice(port, baudrate, socket, env);
     await action(device);
     await device.destroy();
+}
+
+
+export async function readPassword(prompt: string): Promise<string> {
+    const rl = readline.createInterface({ input: process.stdin });
+    readline.emitKeypressEvents(process.stdin, rl);
+    process.stdin.setRawMode(true);
+
+    stdout.write(prompt);
+
+    let stringPassword = "";
+    await new Promise((resolve, reject) => {
+        process.stdin.on("keypress", (str, key) => {
+            if (key.ctrl && key.name === "c") {
+                process.stdin.setRawMode(false);
+                rl.close();
+                reject(1);
+                return;
+            }
+            if (key.sequence === "\r") {
+                if (stringPassword.length >= 8 || stringPassword.length === 0) {
+                    stdout.write("\n");
+                    resolve(null);
+                } else {
+                    stdout.write("\n");
+                    stderr.write("Password too short\n");
+                    reject(1);
+                }
+            } else if (key.sequence === "\b" || key.sequence === "\x7f") {
+                if (stringPassword.length === 0) {
+                    return;
+                }
+                stdout.write("\b \b");
+                stringPassword = stringPassword.slice(0, -1);
+            } else {
+                stringPassword += key.sequence;
+                stdout.write("*");
+            }
+        });
+    });
+    return stringPassword;
 }
