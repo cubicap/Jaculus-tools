@@ -1,6 +1,7 @@
 import { InputPacketCommunicator, OutputPacketCommunicator } from "../link/communicator.js";
 import { logger } from "../util/logger.js";
 import { TimeoutPromise } from "../util/timeoutPromise.js";
+import { encodePath } from "../util/encoding.js";
 
 
 const TIMEOUT_MS = 5000;
@@ -18,6 +19,9 @@ export enum ControllerCommand {
     OK = 0x20,
     ERROR = 0x21,
     LOCK_NOT_OWNED = 0x22,
+    CONFIG_SET = 0x30,
+    CONFIG_GET = 0x31,
+    CONFIG_ERASE = 0x32,
 }
 
 export const ControllerCommandStrings: Record<ControllerCommand, string> = {
@@ -31,8 +35,16 @@ export const ControllerCommandStrings: Record<ControllerCommand, string> = {
     [ControllerCommand.OK]: "OK",
     [ControllerCommand.ERROR]: "ERROR",
     [ControllerCommand.LOCK_NOT_OWNED]: "LOCK_NOT_OWNED",
+    [ControllerCommand.CONFIG_SET]: "CONFIG_SET",
+    [ControllerCommand.CONFIG_GET]: "CONFIG_GET",
+    [ControllerCommand.CONFIG_ERASE]: "CONFIG_ERASE",
 };
 
+enum KeyValueDataType {
+    INT64 = 0,
+    FLOAT32 = 1,
+    STRING = 2,
+}
 
 export class Controller {
     private _in: InputPacketCommunicator;
@@ -72,7 +84,8 @@ export class Controller {
             this._onPacket = (cmd: ControllerCommand) => {
                 if (cmd == ControllerCommand.OK) {
                     resolve();
-                } else {
+                }
+                else {
                     reject(ControllerCommandStrings[cmd]);
                 }
                 return true;
@@ -95,7 +108,8 @@ export class Controller {
             this._onPacket = (cmd: ControllerCommand) => {
                 if (cmd == ControllerCommand.OK) {
                     resolve();
-                } else {
+                }
+                else {
                     reject(ControllerCommandStrings[cmd]);
                 }
                 return true;
@@ -119,7 +133,8 @@ export class Controller {
                         exitCode: data[1],
                         status: data.slice(2).toString("utf8"),
                     });
-                } else {
+                }
+                else {
                     reject(ControllerCommandStrings[cmd]);
                 }
                 return true;
@@ -147,7 +162,8 @@ export class Controller {
                     }
 
                     resolve(res);
-                } else {
+                }
+                else {
                     reject(ControllerCommandStrings[cmd]);
                 }
                 return true;
@@ -171,7 +187,8 @@ export class Controller {
                     this._onPacket = (cmd: ControllerCommand) => {
                         if (cmd == ControllerCommand.OK) {
                             setTimeout(resolve, 10);
-                        } else {
+                        }
+                        else {
                             reject(ControllerCommandStrings[cmd]);
                         }
                         return true;
@@ -200,7 +217,8 @@ export class Controller {
             this._onPacket = (cmd: ControllerCommand) => {
                 if (cmd == ControllerCommand.OK) {
                     resolve();
-                } else {
+                }
+                else {
                     reject(ControllerCommandStrings[cmd]);
                 }
                 return true;
@@ -220,7 +238,8 @@ export class Controller {
             this._onPacket = (cmd: ControllerCommand) => {
                 if (cmd == ControllerCommand.OK) {
                     resolve();
-                } else {
+                }
+                else {
                     reject(ControllerCommandStrings[cmd]);
                 }
                 return true;
@@ -228,6 +247,162 @@ export class Controller {
 
             const packet = this._out.buildPacket();
             packet.put(ControllerCommand.FORCE_UNLOCK);
+            packet.send();
+        }, () => {
+            this.cancel();
+        });
+    }
+
+    public configErase(namespace: string, name: string): Promise<void> {
+        logger.verbose(`Erasing config ${namespace}/${name}`);
+        return new TimeoutPromise(TIMEOUT_MS, (resolve, reject) => {
+            this._onPacket = (cmd: ControllerCommand) => {
+                if (cmd == ControllerCommand.OK) {
+                    resolve();
+                }
+                else {
+                    reject(ControllerCommandStrings[cmd]);
+                }
+                return true;
+            };
+
+            const packet = this._out.buildPacket();
+            packet.put(ControllerCommand.CONFIG_ERASE);
+
+            for (const b of encodePath(namespace)) {
+                packet.put(b);
+            }
+            for (const b of encodePath(name)) {
+                packet.put(b);
+            }
+
+            packet.send();
+        }, () => {
+            this.cancel();
+        });
+    }
+
+    public configSetString(namespace: string, name: string, value: string): Promise<void> {
+        logger.verbose(`Setting config ${namespace}/${name} = ${value}`);
+        return new TimeoutPromise(TIMEOUT_MS, (resolve, reject) => {
+            this._onPacket = (cmd: ControllerCommand) => {
+                if (cmd == ControllerCommand.OK) {
+                    resolve();
+                }
+                else {
+                    reject(ControllerCommandStrings[cmd]);
+                }
+                return true;
+            };
+
+            const packet = this._out.buildPacket();
+            packet.put(ControllerCommand.CONFIG_SET);
+
+            for (const b of encodePath(namespace)) {
+                packet.put(b);
+            }
+            for (const b of encodePath(name)) {
+                packet.put(b);
+            }
+            packet.put(KeyValueDataType.STRING);
+            for (const b of encodePath(value)) {
+                packet.put(b);
+            }
+            packet.send();
+        }, () => {
+            this.cancel();
+        });
+    }
+
+    public configSetInt(namespace: string, name: string, value: number): Promise<void> {
+        logger.verbose(`Setting config ${namespace}/${name} = ${value}`);
+        return new TimeoutPromise(TIMEOUT_MS, (resolve, reject) => {
+            this._onPacket = (cmd: ControllerCommand) => {
+                if (cmd == ControllerCommand.OK) {
+                    resolve();
+                }
+                else {
+                    reject(ControllerCommandStrings[cmd]);
+                }
+                return true;
+            };
+
+            const packet = this._out.buildPacket();
+            packet.put(ControllerCommand.CONFIG_SET);
+
+            for (const b of encodePath(namespace)) {
+                packet.put(b);
+            }
+            for (const b of encodePath(name)) {
+                packet.put(b);
+            }
+
+            packet.put(KeyValueDataType.INT64);
+
+            const data = Buffer.alloc(8);
+            data.writeIntLE(value, 0, 6);
+            for (const b of data) {
+                packet.put(b);
+            }
+
+            packet.send();
+        }, () => {
+            this.cancel();
+        });
+    }
+
+    public configGetString(namespace: string, name: string): Promise<string> {
+        logger.verbose(`Getting config ${namespace}/${name}`);
+        return new TimeoutPromise(TIMEOUT_MS, (resolve, reject) => {
+            this._onPacket = (cmd: ControllerCommand, data: Buffer) => {
+                if (cmd == ControllerCommand.CONFIG_GET && data.length >= 2) {
+                    resolve(data.subarray(1).toString("utf-8"));
+                }
+                else {
+                    reject(ControllerCommandStrings[cmd]);
+                }
+                return true;
+            };
+
+            const packet = this._out.buildPacket();
+            packet.put(ControllerCommand.CONFIG_GET);
+
+            for (const b of encodePath(namespace)) {
+                packet.put(b);
+            }
+            for (const b of encodePath(name)) {
+                packet.put(b);
+            }
+            packet.put(KeyValueDataType.STRING);
+            packet.send();
+        }, () => {
+            this.cancel();
+        });
+    }
+
+    public configGetInt(namespace: string, name: string): Promise<number> {
+        logger.verbose(`Getting config ${namespace}/${name}`);
+        return new TimeoutPromise(TIMEOUT_MS, (resolve, reject) => {
+            this._onPacket = (cmd: ControllerCommand, data: Buffer) => {
+                if (cmd == ControllerCommand.CONFIG_GET && data.length >= 9) {
+                    resolve(data.readUintLE(1, 6));
+                }
+                else {
+                    reject(ControllerCommandStrings[cmd]);
+                }
+                return true;
+            };
+
+            const packet = this._out.buildPacket();
+            packet.put(ControllerCommand.CONFIG_GET);
+
+            for (const b of encodePath(namespace)) {
+                packet.put(b);
+            }
+            for (const b of encodePath(name)) {
+                packet.put(b);
+            }
+            packet.put(KeyValueDataType.INT64);
             packet.send();
         }, () => {
             this.cancel();
