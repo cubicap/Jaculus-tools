@@ -29,7 +29,8 @@ import { stdout } from "process";
  *             {
  *                 "name": "bootloader",
  *                 "address": "0x1000",
- *                 "file": "bootloader.bin"
+ *                 "file": "bootloader.bin",
+ *                 "isStorage": false
  *             },
  *             ...
  *         ]
@@ -79,7 +80,7 @@ class UploadReporter {
 }
 
 
-export async function flash(Package: Package, path: string): Promise<void> {
+export async function flash(Package: Package, path: string, noErase: boolean): Promise<void> {
     const config = Package.getManifest().getConfig();
 
     const flashBaud = parseInt(config["flashBaud"] ?? 921600);
@@ -117,6 +118,7 @@ export async function flash(Package: Package, path: string): Promise<void> {
     const esploader = new ESPLoader(loaderOptions);
 
     const fileArray: { data: string, address: number, fileName: string }[] = [];
+    const skipped: string[] = [];
     for (const partition of partitions) {
         const file = partition["file"];
         if (file === undefined) {
@@ -125,6 +127,11 @@ export async function flash(Package: Package, path: string): Promise<void> {
         const address = parseInt(partition["address"]);
         if (address === undefined) {
             throw new Error("No address defined for partition");
+        }
+        const isStorage = partition["isStorage"];
+        if (isStorage && noErase) {
+            skipped.push(file);
+            continue;
         }
         const dataBuffer = Package.getData()[file];
         if (dataBuffer === undefined) {
@@ -153,7 +160,11 @@ export async function flash(Package: Package, path: string): Promise<void> {
             throw new Error("Chip type mismatch (expected " + config["chip"] + ", got " + esploader.chip.CHIP_NAME + ")");
         }
 
-        stdout.write("Writing flash...\n");
+        for (const file of skipped) {
+            stdout.write("Skipping " + file + " (storage partition)\n");
+        }
+
+        stdout.write("\nWriting flash...\n");
 
         reporter.start();
         await esploader.write_flash({

@@ -9,6 +9,7 @@ const cmd = new Command("Install Jaculus to device", {
         const pkgPath = options["package"] as string;
         const port = options["port"] as string;
         const info = options["info"] as boolean;
+        const noErase = options["no-erase"] as boolean;
 
         if (!port && !info) {
             stderr.write("Port not specified\n");
@@ -28,13 +29,14 @@ const cmd = new Command("Install Jaculus to device", {
             stdout.write(pkg.info());
         }
         else {
-            await pkg.flash(port);
+            await pkg.flash(port, noErase);
         }
     },
     args: [],
     options: {
         "package": new Opt("Uri pointing to the package file", { required: true }),
-        "info": new Opt("Show package info", { isFlag: true })
+        "info": new Opt("Show package info", { isFlag: true }),
+        "no-erase": new Opt("Do not erase storage partitions", { isFlag: true }),
     },
     chainable: false
 });

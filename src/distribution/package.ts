@@ -97,10 +97,10 @@ export class Package {
         return this.data;
     }
 
-    public async flash(port: string): Promise<void> {
+    public async flash(port: string, noErase: boolean): Promise<void> {
         switch (this.manifest.getPlatform()) {
         case "esp32":
-            await espPlatform.flash(this, port);
+            await espPlatform.flash(this, port, noErase);
             break;
         default:
             throw new Error("Unsupported platform");
