@@ -97,26 +97,31 @@ export const wifiGet = new Command("Display current WiFi config", {
         const port = options["port"] as string;
         const baudrate = options["baudrate"] as string;
         const socket = options["socket"] as string;
+        const watch = options["watch"] as boolean;
 
         const device = await getDevice(port, baudrate, socket, env);
 
-        await device.controller.lock().catch((err) => {
-            stderr.write("Error locking device: " + err + "\n");
-            throw 1;
-        });
+        let first = true;
 
-        const mode = await device.controller.configGetInt(WifiKvNs.Main, WifiKeys.Mode);
-        const staMode = await device.controller.configGetInt(WifiKvNs.Main, WifiKeys.StaMode);
-        const staSpecific = await device.controller.configGetString(WifiKvNs.Main, WifiKeys.StaSpecific);
-        const apSsid = await device.controller.configGetString(WifiKvNs.Main, WifiKeys.ApSsid);
-        const currentIp = await device.controller.configGetString(WifiKvNs.Main, WifiKeys.CurrentIp);
+        do {
+            if (!first) {
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+                stdout.write("\n-----\n");
+            }
+            first = false;
 
-        await device.controller.unlock().catch((err) => {
-            stderr.write("Error unlocking device: " + err + "\n");
-            throw 1;
-        });
+            await device.controller.lock().catch((err) => {
+                stderr.write("Error locking device: " + err + "\n");
+                throw 1;
+            });
 
-        stdout.write(`Current IP: ${currentIp}
+            const mode = await device.controller.configGetInt(WifiKvNs.Main, WifiKeys.Mode);
+            const staMode = await device.controller.configGetInt(WifiKvNs.Main, WifiKeys.StaMode);
+            const staSpecific = await device.controller.configGetString(WifiKvNs.Main, WifiKeys.StaSpecific);
+            const apSsid = await device.controller.configGetString(WifiKvNs.Main, WifiKeys.ApSsid);
+            const currentIp = await device.controller.configGetString(WifiKvNs.Main, WifiKeys.CurrentIp);
+
+            stdout.write(`Current IP: ${currentIp}
 
 WiFi Mode: ${WifiMode[mode]}
 
@@ -125,8 +130,17 @@ Station Specific SSID: ${staSpecific}
 
 AP SSID: ${apSsid}
 `);
+
+            await device.controller.unlock().catch((err) => {
+                stderr.write("Error unlocking device: " + err + "\n");
+                throw 1;
+            });
+
+        } while (watch);
     },
-    args: [],
+    options: {
+        "watch": new Opt("Watch for changes", { isFlag: true }),
+    },
     chainable: true
 });
 
