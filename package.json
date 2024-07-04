@@ -4,7 +4,7 @@
     "description": "Companion application/library for Jaculus",
     "repository": {
         "type": "git",
-        "url": "https://github.com/cubicap/Jaculus-tools.git"
+        "url": "git+https://github.com/cubicap/Jaculus-tools.git"
     },
     "author": {
         "name": "Petr Kubica (cubicap)",
@@ -21,7 +21,7 @@
         "command": "node ./dist/src/commands/index.js"
     },
     "bin": {
-        "jac": "./dist/src/commands/index.js"
+        "jac": "dist/src/commands/index.js"
     },
     "main": "./dist/src/index.js",
     "module": "./dist/src/index.js",
@@ -40,21 +40,21 @@
         "serialport": "^12.0.0",
         "tar-stream": "^3.1.7",
         "typescript": "^5.2.2",
-        "winston": "^3.11.0"
+        "winston": "^3.13.0"
     },
     "devDependencies": {
-        "@tsconfig/node16": "^16.1.1",
-        "@types/chai": "^4.3.11",
+        "@tsconfig/node16": "^16.1.3",
+        "@types/chai": "^4.3.16",
         "@types/cli-progress": "^3.11.5",
-        "@types/mocha": "^10.0.6",
-        "@types/node": "^18.18.14",
+        "@types/mocha": "^10.0.7",
+        "@types/node": "^18.19.39",
         "@types/tar-stream": "^3.1.3",
-        "@typescript-eslint/eslint-plugin": "^7.0.1",
-        "@typescript-eslint/parser": "^7.0.1",
+        "@typescript-eslint/eslint-plugin": "^7.15.0",
+        "@typescript-eslint/parser": "^7.15.0",
         "chai": "^4.4.1",
         "chai-bytes": "^0.1.2",
-        "eslint": "^8.56.0",
-        "mocha": "^10.3.0",
+        "eslint": "^8.57.0",
+        "mocha": "^10.6.0",
         "queue-fifo": "^0.2.6",
         "ts-node": "^10.9.2"
     }
