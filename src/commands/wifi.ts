@@ -47,7 +47,7 @@ export const wifiAdd = new Command("Add a WiFi network", {
             throw 1;
         });
 
-        await device.controller.configSetString("wifi_net", ssid, password);
+        await device.controller.configSetString("wifi_net", ssid.substring(0, 15), password);
 
         await device.controller.unlock().catch((err) => {
             stderr.write("Error unlocking device: " + err + "\n");
