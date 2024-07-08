@@ -213,8 +213,16 @@ export function info(Package: Package): string {
         if (dataBuffer === undefined) {
             throw new Error("File not found in package");
         }
+        const isStorage = partition["isStorage"];
 
-        output += "  " + file + " (at 0x" + address.toString(16) + ", " + dataBuffer.length + " bytes)\n";
+        output += `  ${file} (at 0x${address.toString(16)}, ${dataBuffer.length}`;
+        if (isStorage) {
+            output += ", storage)";
+        }
+        else {
+            output += ")";
+        }
+        output += "\n";
     }
 
     return output;
