@@ -22,9 +22,21 @@ export default [
           './unit/tsconfig.json',
         ],
         sourceType: 'module',
+        ecmaVersion: 'latest',
       },
     },
+    env: {
+      es2021: true,
+      node: true,
+    },
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+    },
     rules: {
+      indent: ['error', 4],
+      'linebreak-style': ['error', 'unix'],
+      quotes: ['error', 'double'],
+      semi: ['error', 'always'],
       '@typescript-eslint/no-explicit-any': 'off',
       // Add or override more rules here
     },
