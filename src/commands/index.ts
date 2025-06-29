@@ -12,6 +12,7 @@ const jac = new Program("jac", "Tools for controlling devices running Jaculus", 
         "port": new Opt("Serial port to use (default: first available)"),
         "baudrate": new Opt("Baudrate to use", { defaultValue: "921600" }),
         "socket": new Opt("host:port to use"),
+        "ble": new Opt("Bluetooth LE address to use", { defaultValue: undefined }),
     },
     action: async (options: Record<string, string | boolean>) => {
         if (options["help"]) {

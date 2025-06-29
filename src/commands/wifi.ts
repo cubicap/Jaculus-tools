@@ -36,11 +36,12 @@ export const wifiAdd = new Command("Add a WiFi network", {
         const port = options["port"] as string;
         const baudrate = options["baudrate"] as string;
         const socket = options["socket"] as string;
+        const ble = options["ble"] as string | undefined;
         const ssid = args["ssid"] as string;
 
         const password = await readPassword("Password: ");
 
-        const device = await getDevice(port, baudrate, socket, env);
+        const device = await getDevice(port, baudrate, socket, ble, env);
 
         await device.controller.lock().catch((err) => {
             stderr.write("Error locking device: " + err + "\n");
@@ -68,9 +69,10 @@ export const wifiRemove = new Command("Remove a WiFi network", {
         const port = options["port"] as string;
         const baudrate = options["baudrate"] as string;
         const socket = options["socket"] as string;
+        const ble = options["ble"] as string | undefined;
         const ssid = args["ssid"] as string;
 
-        const device = await getDevice(port, baudrate, socket, env);
+        const device = await getDevice(port, baudrate, socket, ble, env);
 
         await device.controller.lock().catch((err) => {
             stderr.write("Error locking device: " + err + "\n");
@@ -98,9 +100,10 @@ export const wifiGet = new Command("Display current WiFi config", {
         const port = options["port"] as string;
         const baudrate = options["baudrate"] as string;
         const socket = options["socket"] as string;
+        const ble = options["ble"] as string | undefined;
         const watch = options["watch"] as boolean;
 
-        const device = await getDevice(port, baudrate, socket, env);
+        const device = await getDevice(port, baudrate, socket, ble, env);
 
         let first = true;
 
@@ -151,7 +154,8 @@ export const wifiDisable = new Command("Disable WiFi", {
         const port = options["port"] as string;
         const baudrate = options["baudrate"] as string;
         const socket = options["socket"] as string;
-        const device = await getDevice(port, baudrate, socket, env);
+        const ble = options["ble"] as string | undefined;
+        const device = await getDevice(port, baudrate, socket, ble, env);
 
         await device.controller.lock().catch((err) => {
             stderr.write("Error locking device: " + err + "\n");
@@ -176,6 +180,7 @@ export const wifiSetAp = new Command("Set WiFi to AP mode (create a hotspot)", {
         const port = options["port"] as string;
         const baudrate = options["baudrate"] as string;
         const socket = options["socket"] as string;
+        const ble = options["ble"] as string | undefined;
 
         const ssid = args["ssid"] as string | undefined;
         const pass = await readPassword("Password: ");
@@ -190,7 +195,7 @@ export const wifiSetAp = new Command("Set WiFi to AP mode (create a hotspot)", {
             throw 1;
         }
 
-        const device = await getDevice(port, baudrate, socket, env);
+        const device = await getDevice(port, baudrate, socket, ble, env);
 
         await device.controller.lock().catch((err) => {
             stderr.write("Error locking device: " + err + "\n");
@@ -224,6 +229,7 @@ export const wifiSetSta = new Command("Set WiFi to Station mode (connect to a wi
         const port = options["port"] as string;
         const baudrate = options["baudrate"] as string;
         const socket = options["socket"] as string;
+        const ble = options["ble"] as string | undefined;
 
         const specificSsid = options["specific"] as string | undefined;
         const noApFallback = options["no-ap-fallback"] as boolean;
@@ -233,7 +239,7 @@ export const wifiSetSta = new Command("Set WiFi to Station mode (connect to a wi
             throw 1;
         }
 
-        const device = await getDevice(port, baudrate, socket, env);
+        const device = await getDevice(port, baudrate, socket, ble, env);
         await device.controller.lock().catch((err) => {
             stderr.write("Error locking device: " + err + "\n");
             throw 1;

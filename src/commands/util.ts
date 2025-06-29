@@ -38,9 +38,10 @@ export function defaultSocket(value?: string): string {
     return value;
 }
 
-export async function getPortSocket(port?: string | boolean, socket?: string | boolean): Promise<{ type: "port" | "socket", value: string }> {
-    if (port && socket) {
-        stderr.write("Must specify either a serial port or a socket, not both\n");
+export async function getPortSocketBle(port?: string | boolean, socket?: string | boolean, ble?: string | boolean): Promise<{ type: "port" | "socket" | "ble", value: string }> {
+    const count = [!!port, !!socket, !!ble].filter(Boolean).length;
+    if (count !== 1) {
+        stderr.write("Must specify exactly one of: serial port, socket, or BLE\n");
         throw 1;
     }
 
@@ -52,7 +53,18 @@ export async function getPortSocket(port?: string | boolean, socket?: string | b
         return { type: "socket", value: socket === true ? defaultSocket() : socket };
     }
 
-    return { type: "port", value: await defaultPort() };
+    if (ble) {
+        // BLE does not have a default, must be a string
+        if (ble === true) {
+            stderr.write("Must specify BLE device identifier\n");
+            throw 1;
+        }
+        return { type: "ble", value: ble };
+    }
+
+    // Should never reach here
+    stderr.write("Unknown error in getPortSocketBle\n");
+    throw 1;
 }
 
 export function parseSocket(value: string): [string, number] {
@@ -68,12 +80,14 @@ export function parseSocket(value: string): [string, number] {
     return [parts[0], parseInt(parts[1])];
 }
 
-export async function getDevice(port: string | undefined, baudrate: string | undefined, socket: string | undefined, env: Env): Promise<JacDevice> {
+
+
+export async function getDevice(port: string | undefined, baudrate: string | undefined, socket: string | undefined, ble: string | undefined, env: Env): Promise<JacDevice> {
     if (env.device) {
         return env.device.value as JacDevice;
     }
 
-    const where = await getPortSocket(port, socket);
+    const where = await getPortSocketBle(port, socket, ble);
 
     let device: JacDevice | undefined = undefined;
 
@@ -109,6 +123,11 @@ export async function getDevice(port: string | undefined, baudrate: string | und
             }));
         });
     }
+    // BLE support placeholder: add BLE connection logic here if needed
+    else if (where.type === "ble") {
+        stderr.write("BLE support is not implemented yet.\n");
+        throw 1;
+    }
 
     if (!device) {
         stderr.write("Invalid port/socket\n");
@@ -142,9 +161,9 @@ export async function getDevice(port: string | undefined, baudrate: string | und
 }
 
 export async function withDevice(port: string | undefined, baudrate: string | undefined,
-    socket: string | undefined, env: Env, action: (device: JacDevice) => Promise<void>
+    socket: string | undefined, ble: string | undefined, env: Env, action: (device: JacDevice) => Promise<void>
 ): Promise<void> {
-    const device = await getDevice(port, baudrate, socket, env);
+    const device = await getDevice(port, baudrate, socket, ble, env);
     await action(device);
     await device.destroy();
 }
