@@ -1,9 +1,15 @@
 {
     "extends": "./tsconfig-base.json",
     "files": [],
+    "include": [
+        "unit/**/*.ts"
+    ],
     "references": [
         {
             "path": "./src"
         },
+        {
+            "path": "./unit"
+        }
     ]
 }

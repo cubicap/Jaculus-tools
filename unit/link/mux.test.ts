@@ -1,5 +1,4 @@
-import "mocha";
-import chai from "chai";
+import * as chai from "chai";
 import chaiBytes from "chai-bytes";
 import { Mux } from "../../src/link/mux.js";
 import Queue from "queue-fifo";

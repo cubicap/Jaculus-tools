@@ -203,7 +203,7 @@ export class Controller {
 
                 return;
             }
-            catch (err) {
+            catch {
                 logger.verbose("Failed to lock controller, retries: " + retries);
             }
 
