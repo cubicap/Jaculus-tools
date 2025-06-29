@@ -155,7 +155,7 @@ const cmd = new Command("Flash code to device (replace contents of ./code)", {
 
             await uploadIfDifferent(device.uploader, dataHashes, from, "code");
         }
-        catch (_err) {
+        catch {
             logger.info("Deleting old code");
             await device.uploader.deleteDirectory("code").catch((err) => {
                 logger.verbose("Error deleting directory: " + err);
