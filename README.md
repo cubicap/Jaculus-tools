@@ -46,7 +46,7 @@ Verify that the runtime is installed correctly by running:
 
 ### Connecting to the device
 
-All commands interacting with the device require specifying the device connection using either `--port` or `--socket` option.
+All commands interacting with the device require specifying the device connection using USB `--port`, `--socket` or `--ble` options.
 
 To connect to the device using serial port, use:
 
@@ -56,9 +56,16 @@ To connect to the device using TCP socket, use:
 
     jac --socket <host>:<port> <command>
 
+To connect to the device using Bluetooth Low Energy, use:
+
+    jac --ble <device-name> <command>
+
 To list available serial ports, use:
 
     jac list-ports
+
+To list available Bluetooth devices, use:
+    jac list-ble
 
 To tunnel serial port over TCP, use:
 

@@ -67,9 +67,11 @@ import fomat from "./format.js";
 import resourcesLs from "./resources-ls.js";
 import resourcesRead from "./resources-read.js";
 import getExamples from "./get-examples.js";
+import listBle from "./list-ble.js";
 import { wifiAdd, wifiRemove, wifiGet, wifiSetAp, wifiSetSta, wifiDisable } from "./wifi.js";
 
 jac.addCommand("list-ports", listPorts);
+jac.addCommand("list-ble", listBle);
 jac.addCommand("serial-socket", serialSocket);
 jac.addCommand("install", install);
 jac.addCommand("build", build);
@@ -102,6 +104,7 @@ jac.addCommand("wifi-add", wifiAdd);
 jac.addCommand("wifi-rm", wifiRemove);
 jac.addCommand("wifi-sta", wifiSetSta);
 jac.addCommand("wifi-disable", wifiDisable);
+
 
 
 const args = process.argv.slice(2);

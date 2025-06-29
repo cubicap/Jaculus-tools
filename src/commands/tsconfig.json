@@ -4,6 +4,7 @@
         "util.ts",
         "list-ports.ts",
         "serial-socket.ts",
+        "list-ble.ts",
         "monitor.ts",
         "ls.ts",
         "read.ts",
