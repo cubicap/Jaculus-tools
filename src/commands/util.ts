@@ -6,8 +6,8 @@ import { stderr, stdout } from "process";
 import { logger } from "../util/logger.js";
 import { Env } from "./lib/command.js";
 import readline from "readline";
-import noble, { Peripheral } from '@stoprocent/noble';
 import { BLEStream } from "../link/streams/bleStream.js";
+import { BleClient } from "../link/ble/bleClient.js";
 
 
 export async function defaultPort(value?: string): Promise<string> {
@@ -128,86 +128,16 @@ export async function getDevice(port: string | undefined, baudrate: string | und
     else if (where.type === "ble") {
         // BLE connection by localName or UUID
         const target = where.value;
-        stderr.write(`Connecting to BLE device: ${target}\n`);
-        await noble.waitForPoweredOnAsync();
-        let foundPeripheral: Peripheral | undefined;
-        let cleanupDone = false;
-        const cleanup = async () => {
-            if (cleanupDone) return;
-            cleanupDone = true;
-            try { await noble.stopScanningAsync(); } catch {}
-            noble.removeAllListeners('discover');
-        };
-        // Helper: is UUID (32 hex chars)
-        const isUuid = /^[0-9a-fA-F]{32}$/.test(target.replace(/-/g, ""));
+        const bleClient = new BleClient();
+        let char;
         try {
-            if (isUuid) {
-                // Try direct connection by UUID
-                try {
-                    foundPeripheral = await noble.connectAsync(target);
-                    stderr.write(`Direct connection successful to: ${foundPeripheral.id}\n`);
-                } catch (err) {
-                    const msg = err instanceof Error ? err.message : String(err);
-                    stderr.write(`Direct connection failed: ${msg}\n`);
-                }
-            }
-            if (!foundPeripheral) {
-                // Scan for device by name or UUID
-                await noble.startScanningAsync();
-                const timeout = 10000;
-                await new Promise<void>((resolve, reject) => {
-                    const onDiscover = async (peripheral: Peripheral) => {
-                        if (peripheral.id === target || peripheral.advertisement.localName === target) {
-                            foundPeripheral = peripheral;
-                            await noble.stopScanningAsync();
-                            noble.removeListener('discover', onDiscover);
-                            resolve();
-                        }
-                    };
-                    noble.on('discover', onDiscover);
-                    setTimeout(() => {
-                        noble.removeListener('discover', onDiscover);
-                        noble.stopScanningAsync();
-                        if (!foundPeripheral) reject(new Error('BLE device not found'));
-                    }, timeout);
-                });
-            }
-            if (!foundPeripheral) {
-                stderr.write('BLE device not found\n');
-                throw 1;
-            }
-            // Connect if not already connected
-            if (!foundPeripheral.state || foundPeripheral.state !== 'connected') {
-                await foundPeripheral.connectAsync();
-            }
-            stderr.write('Connected to BLE device.\n');
-            // Discover services and characteristics
-            const { characteristics } = await foundPeripheral.discoverSomeServicesAndCharacteristicsAsync([
-                '00ff'
-            ], [
-                'ff01'
-            ]);
-            const char = characteristics.find(c => c.uuid === 'ff01');
-            if (!char) {
-                stderr.write('BLE characteristic ff01 not found\n');
-                await foundPeripheral.disconnectAsync();
-                throw 1;
-            }
-            // Create JacDevice with BLEStream
-            device = new JacDevice(new BLEStream(char));
-            stderr.write('JacDevice BLE connection established.\n');
-            // Cleanup on exit
-            const exitHandler = async () => {
-                try { await foundPeripheral?.disconnectAsync(); } catch {}
-                await cleanup();
-                try { await device?.destroy(); } catch {}
-            };
-            process.once('SIGINT', exitHandler);
-            process.once('SIGQUIT', exitHandler);
-            process.once('SIGTERM', exitHandler);
-        } finally {
-            await cleanup();
+            char = await bleClient.connect(target);
+        } catch (err) {
+            stderr.write((err instanceof Error ? err.message : String(err)) + "\n");
+            throw 1;
         }
+        device = new JacDevice(new BLEStream(char));
+        stderr.write('JacDevice BLE connection established.\n');
     }
 
     if (!device) {
