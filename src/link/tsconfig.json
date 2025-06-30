@@ -12,6 +12,7 @@
         "encoders/interface.ts",
         "encoders/cobs.ts",
         "ble/bleClient.ts",
+        "ble/bleScan.ts",
     ],
     "references": [
         {
