@@ -8,8 +8,11 @@
         "stream.ts",
         "streams/serialStream.ts",
         "streams/socketStream.ts",
+        "streams/bleStream.ts",
         "encoders/interface.ts",
         "encoders/cobs.ts",
+        "ble/bleClient.ts",
+        "ble/bleScan.ts",
     ],
     "references": [
         {

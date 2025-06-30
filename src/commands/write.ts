@@ -9,6 +9,7 @@ const cmd = new Command("Write a file to device", {
         const port = options["port"] as string;
         const baudrate = options["baudrate"] as string;
         const socket = options["socket"] as string;
+        const ble = options["ble"] as string | undefined;
         const path = args["path"] as string;
 
         let str = "";
@@ -38,7 +39,7 @@ const cmd = new Command("Write a file to device", {
                 throw 1;
             });
 
-        const device = await getDevice(port, baudrate, socket, env);
+        const device = await getDevice(port, baudrate, socket, ble, env);
 
         await device.controller.lock().catch((err) => {
             stderr.write("Error locking device: " + err + "\n");

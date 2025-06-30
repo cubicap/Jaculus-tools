@@ -8,9 +8,10 @@ const cmd = new Command("Create a directory on device", {
         const port = options["port"] as string;
         const baudrate = options["baudrate"] as string;
         const socket = options["socket"] as string;
+        const ble = options["ble"] as string | undefined;
         const path = args["path"] as string;
 
-        const device = await getDevice(port, baudrate, socket, env);
+        const device = await getDevice(port, baudrate, socket, ble, env);
 
         await device.controller.lock().catch((err) => {
             stderr.write("Error locking device: " + err + "\n");

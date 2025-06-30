@@ -12,6 +12,7 @@ const jac = new Program("jac", "Tools for controlling devices running Jaculus", 
         "port": new Opt("Serial port to use (default: first available)"),
         "baudrate": new Opt("Baudrate to use", { defaultValue: "921600" }),
         "socket": new Opt("host:port to use"),
+        "ble": new Opt("Bluetooth LE address to use", { defaultValue: undefined }),
     },
     action: async (options: Record<string, string | boolean>) => {
         if (options["help"]) {
@@ -67,9 +68,12 @@ import fomat from "./format.js";
 import resourcesLs from "./resources-ls.js";
 import resourcesRead from "./resources-read.js";
 import getExamples from "./get-examples.js";
+import listBle from "./list-ble.js";
 import { wifiAdd, wifiRemove, wifiGet, wifiSetAp, wifiSetSta, wifiDisable } from "./wifi.js";
+import { bleGet, bleDisable, bleEnableStream, bleSetName} from "./ble.js";
 
 jac.addCommand("list-ports", listPorts);
+jac.addCommand("list-ble", listBle);
 jac.addCommand("serial-socket", serialSocket);
 jac.addCommand("install", install);
 jac.addCommand("build", build);
@@ -102,6 +106,11 @@ jac.addCommand("wifi-add", wifiAdd);
 jac.addCommand("wifi-rm", wifiRemove);
 jac.addCommand("wifi-sta", wifiSetSta);
 jac.addCommand("wifi-disable", wifiDisable);
+
+jac.addCommand("ble-get", bleGet);
+jac.addCommand("ble-disable", bleDisable);
+jac.addCommand("ble-enable-stream", bleEnableStream);
+jac.addCommand("ble-set-name", bleSetName);
 
 
 const args = process.argv.slice(2);

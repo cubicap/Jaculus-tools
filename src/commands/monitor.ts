@@ -16,8 +16,9 @@ const cmd = new Command("Monitor program output", {
         const port = options["port"] as string;
         const baudrate = options["baudrate"] as string;
         const socket = options["socket"] as string;
+        const ble = options["ble"] as string;
 
-        const device = await getDevice(port, baudrate, socket, env);
+        const device = await getDevice(port, baudrate, socket, ble, env);
 
         device.programOutput.onData((data) => {
             stdout.write(data);

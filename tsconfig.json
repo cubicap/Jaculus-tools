@@ -2,7 +2,8 @@
     "extends": "./tsconfig-base.json",
     "files": [],
     "include": [
-        "unit/**/*.ts"
+        "unit/**/*.ts",
+        "src/link/streams/bleStream.ts"
     ],
     "references": [
         {

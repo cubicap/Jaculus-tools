@@ -8,10 +8,11 @@ const cmd = new Command("Read a resource from device", {
         const port = options["port"] as string;
         const baudrate = options["baudrate"] as string;
         const socket = options["socket"] as string;
+        const ble = options["ble"] as string | undefined;
         const name = args["name"] as string;
         const outfile = options["outfile"] as string | undefined;
 
-        const device = await getDevice(port, baudrate, socket, env);
+        const device = await getDevice(port, baudrate, socket, ble, env);
 
         await device.controller.lock().catch((err) => {
             stderr.write("Error locking device: " + err + "\n");

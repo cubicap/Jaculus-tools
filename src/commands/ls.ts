@@ -9,13 +9,14 @@ const cmd = new Command("List files in a directory", {
         const port = options["port"] as string;
         const baudrate = options["baudrate"] as string;
         const socket = options["socket"] as string;
+        const ble = options["ble"] as string | undefined;
         const path = args["path"] as string;
         const directoryFlag = options["directory"] as boolean;
         const sizeFlag = options["size"] as boolean;
 
         const flags = (directoryFlag ? "d" : "") + (sizeFlag ? "s" : "");
 
-        const device = await getDevice(port, baudrate, socket, env);
+        const device = await getDevice(port, baudrate, socket, ble, env);
 
         await device.controller.lock().catch((err) => {
             stderr.write("Error locking device: " + err + "\n");
