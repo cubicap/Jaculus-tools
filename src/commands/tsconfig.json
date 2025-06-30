@@ -26,6 +26,7 @@
         "resources-read.ts",
         "get-examples.ts",
         "wifi.ts",
+        "ble.ts",
         "index.ts",
         "lib/command.ts",
     ],

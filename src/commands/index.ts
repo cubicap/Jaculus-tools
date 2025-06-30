@@ -70,6 +70,7 @@ import resourcesRead from "./resources-read.js";
 import getExamples from "./get-examples.js";
 import listBle from "./list-ble.js";
 import { wifiAdd, wifiRemove, wifiGet, wifiSetAp, wifiSetSta, wifiDisable } from "./wifi.js";
+import { bleGet, bleDisable, bleEnableStream, bleSetName} from "./ble.js";
 
 jac.addCommand("list-ports", listPorts);
 jac.addCommand("list-ble", listBle);
@@ -106,6 +107,10 @@ jac.addCommand("wifi-rm", wifiRemove);
 jac.addCommand("wifi-sta", wifiSetSta);
 jac.addCommand("wifi-disable", wifiDisable);
 
+jac.addCommand("ble-get", bleGet);
+jac.addCommand("ble-disable", bleDisable);
+jac.addCommand("ble-enable-stream", bleEnableStream);
+jac.addCommand("ble-set-name", bleSetName);
 
 
 const args = process.argv.slice(2);
