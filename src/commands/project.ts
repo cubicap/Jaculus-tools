@@ -64,7 +64,25 @@ async function loadPackage(options: Record<string, string | boolean>, env: Env):
     const files: Record<string, Buffer> = {};
 
     const extract = tar.extract();
-    await new Promise(async (resolve, reject) => {
+
+    if (source.uri) {
+        const stream = await getUri(source.uri);
+        stream.pipe(zlib.createGunzip()).pipe(extract);
+    }
+    else if (source.device) {
+        const buffer = await loadFromDevice(source.device);
+
+        const gunzip = zlib.createGunzip();
+        gunzip.pipe(extract);
+        gunzip.write(buffer);
+        gunzip.end();
+    }
+    else {
+        stderr.write("Invalid source for package");
+        throw 1;
+    }
+
+    await new Promise((resolve, reject) => {
         extract.on("entry", (header, stream, next) => {
             if (header.type === "directory") {
                 dirs.push(header.name);
@@ -96,22 +114,6 @@ async function loadPackage(options: Record<string, string | boolean>, env: Env):
         extract.on("error", (err) => {
             reject(err);
         });
-
-        if (source.uri) {
-            const stream = await getUri(source.uri);
-            stream.pipe(zlib.createGunzip()).pipe(extract)
-        }
-        else if (source.device) {
-            const buffer = await loadFromDevice(source.device);
-
-            const gunzip = zlib.createGunzip();
-            gunzip.pipe(extract);
-            gunzip.write(buffer);
-            gunzip.end();
-        }
-        else {
-            reject(new Error("Invalid source for package"));
-        }
     });
 
     return { dirs, files };
@@ -119,7 +121,7 @@ async function loadPackage(options: Record<string, string | boolean>, env: Env):
 
 
 function unpackPackage(pkg: Package, outPath: string, filter: (fileName: string) => boolean, dryRun: boolean = false): void {
-    for (let dir of pkg.dirs) {
+    for (const dir of pkg.dirs) {
         const source = dir;
         const fullPath = path.join(outPath, source);
         if (!fs.existsSync(fullPath) && !dryRun) {
@@ -202,7 +204,7 @@ export const projectUpdate = new Command("Update existing project from package s
         else {
             const input = manifest["skeletonFiles"];
             skeleton = [];
-            for (let entry of input) {
+            for (const entry of input) {
                 if (typeof entry === "string") {
                     skeleton.push(entry);
                 }
@@ -217,7 +219,7 @@ export const projectUpdate = new Command("Update existing project from package s
             if (fileName === "manifest.json") {
                 return false;
             }
-            for (let pattern of skeleton) {
+            for (const pattern of skeleton) {
                 if (path.matchesGlob(fileName, pattern)) {
                     return true;
                 }

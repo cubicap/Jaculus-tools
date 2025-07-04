@@ -37,8 +37,6 @@ export function compile(input: string, outDir: string, err: Writable = stderr): 
         outDir: [ outDir ],
     };
 
-    config.config.compilerOptions = config.config.compilerOptions;
-
     const { options, fileNames, errors } = ts.parseJsonConfigFileContent(config.config, ts.sys, input);
     if (errors.length > 0) {
         errors.forEach(error => printMessage(error.messageText, err));
