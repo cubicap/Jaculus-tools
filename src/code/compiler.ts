@@ -31,7 +31,7 @@ export function compile(input: string, outDir: string, err: Writable = stderr): 
     const forcedOptions: Record<string, any[]> = {
         target: [ ts.ScriptTarget.ES2023, ts.ScriptTarget.ES2020 ],
         module: [ ts.ModuleKind.ES2022, ts.ModuleKind.ES2020 ],
-        moduleResolution: [ ts.ModuleResolutionKind.Node16, ts.ModuleResolutionKind.NodeJs ],
+        moduleResolution: [ ts.ModuleResolutionKind.NodeJs ],
         resolveJsonModule: [ false ],
         esModuleInterop: [ true ],
         outDir: [ outDir ],
@@ -47,7 +47,7 @@ export function compile(input: string, outDir: string, err: Writable = stderr): 
         if (options[key] && !values.includes(options[key])) {
             throw new Error(`tsconfig.json must have ${key} set to one of: [ ${values.join(", ")} ]`);
         }
-        else {
+        else if (!options[key]) {
             options[key] = values[0];
         }
     }
