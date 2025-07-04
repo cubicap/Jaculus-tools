@@ -199,7 +199,7 @@ export const projectUpdate = new Command("Update existing project from package s
 
         let skeleton: string[];
         if (!manifest || !manifest["skeletonFiles"]) {
-            skeleton = [ "@types/*" ];
+            skeleton = [ "@types/*", "tsconfig.json" ];
         }
         else {
             const input = manifest["skeletonFiles"];
