@@ -6,7 +6,7 @@ import { stderr, stdout } from "process";
 
 const cmd = new Command("Install Jaculus to device", {
     action: async (options: Record<string, string | boolean>) => {
-        const pkgPath = options["package"] as string;
+        const pkgUri = options["package"] as string;
         const port = options["port"] as string;
         const info = options["info"] as boolean;
         const noErase = options["no-erase"] as boolean;
@@ -18,7 +18,7 @@ const cmd = new Command("Install Jaculus to device", {
 
         stderr.write("Loading package...\n");
 
-        const pkg = await loadPackage(pkgPath);
+        const pkg = await loadPackage(pkgUri);
 
         stdout.write("Version: " + pkg.getManifest().getVersion() + "\n");
         stdout.write("Board: " + pkg.getManifest().getBoard() + "\n");
