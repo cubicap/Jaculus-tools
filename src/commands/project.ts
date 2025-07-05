@@ -194,6 +194,11 @@ export const projectUpdate = new Command("Update existing project from package s
             throw 1;
         }
 
+        if (!fs.statSync(outPath).isDirectory()) {
+            stderr.write(`Path '${outPath}' is not a directory\n`);
+            throw 1;
+        }
+
         const pkg = await loadPackage(options, env);
 
         let manifest;
