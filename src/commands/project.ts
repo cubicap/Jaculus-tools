@@ -141,6 +141,10 @@ function unpackPackage(pkg: Package, outPath: string, filter: (fileName: string)
 
         console.log(`${fs.existsSync(fullPath) ? "Overwrite" : "Create"} file: ${fullPath}`);
         if (!dryRun) {
+            const dir = path.dirname(fullPath);
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir, { recursive: true });
+            }
             fs.writeFileSync(fullPath, data);
         }
     }
